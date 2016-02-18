@@ -11,7 +11,7 @@ class Sensor(object):
     return "Sensor " + str(self.sensor_number) + ":\n" + \
       " At z: " + str(self.get_z()) + "\n" + \
       " Number of hits: " + str(self.get_number_of_hits()) + "\n" + \
-      " Hits (x, y, z, ID): " + str(self.hits)
+      " Hits (ID {x, y, z}): " + str(self.hits)
       
   def get_z(self):
     return self.json_event["sensor_module_z"][self.sensor_number]
@@ -37,8 +37,8 @@ class Hit(object):
     else: return self.id
 
   def __repr__(self):
-    return "#" + str(self.id) + " (" + str(self.x) + ", " + \
-           str(self.y) + ", " + str(self.z) + ")"
+    return "#" + str(self.id) + " {" + str(self.x) + ", " + \
+           str(self.y) + ", " + str(self.z) + "}"
 
 
 class HitsIterator(object):
@@ -74,7 +74,7 @@ class Track(object):
     self.hits = hits
 
   def __repr__(self):
-    return "Track hits #" + str(len(self.hits)) + ": " + str(self.hits) + "\n"
+    return "Track hits #" + str(len(self.hits)) + ": " + str(self.hits)
 
   def add_hit(self, hit):
     self.hits.append(hit)
@@ -149,12 +149,13 @@ f.close()
 
 # Get all sensors, print some information
 sensors = [Sensor(i, event_json) for i in range(0, 52)]
-print(sensors[0], "\r\n\r\n", sensors[1], "\r\n\r\n", sensors[2])
+print(sensors[0], "\r\n", sensors[1], "\r\n", sensors[2])
 
 # We are searching for tracks
 # We will keep a list of used hits to avoid clones
-tracks    = []
-used_hits = []
+weak_tracks = []
+tracks      = []
+used_hits   = []
 
 ## Start from the last sensor, create seeds and forward them
 # for s0, s1, starting_sensor_index in zip(reversed(sensors[3:]), reversed(sensors[1:-2]), reversed(range(0, 49))):
@@ -165,28 +166,51 @@ for s0, s1, starting_sensor_index in zip(reversed(sensors[3:]), reversed(sensors
       if are_compatible(h0, h1):
         # We have a seed, let's attempt to form a track
         # with a hit from the following three sensors
-        forming_track = Track()
         h2_found = False
+        strong_track_found = False
+
         sensor_index_iter = -1
         for sensor_index in [sid for sid in reversed(range(starting_sensor_index-2, starting_sensor_index+1)) if sid >= 0]:
           for h2 in sensors[sensor_index]:
-            # if under_tolerance(h0, h1, h2):
-            tracks.append( Track([h0, h1, h2]) )
-            used_hits += [h0.id, h1.id, h2.id]
-            h2_found = True
-            sensor_index_iter = sensor_index
-            break
+            if check_tolerance(h0, h1, h2):
+              forming_track = Track([h0, h1, h2])
+              h2_found = True
+              sensor_index_iter = sensor_index
+              break
           if h2_found:
             break
 
         # Continue with following sensors - "forward" track
-        while (sensor_index_iter >= 0):
-          sensor_index_iter -= 1
-          for h2 in sensors[sensor_index_iter]:
-            if (check_tolerance())
+        if h2_found:
+          while (sensor_index_iter >= 0):
+            sensor_index_iter -= 1
+            for h2 in sensors[sensor_index_iter]:
+              if check_tolerance(forming_track.hits[-2], forming_track.hits[-1], h2):
+                forming_track.add_hit(h2)
+                break
 
+          # Add track to list of tracks
+          if len(forming_track.hits) == 3:
+            weak_tracks.append(forming_track)
 
+          elif len(forming_track.hits) >= 4:
+            tracks.append(forming_track)
+            used_hits += [h.id for h in forming_track.hits]
+            strong_track_found = True
 
-        
-print(tracks)
+        if strong_track_found:
+          break
+
+# Process weak tracks
+for t in weak_tracks:
+  used_hits_in_weak_track = [h for h in t.hits if h.id in used_hits]
+  if len(used_hits_in_weak_track) == 0:
+    used_hits += [h.id for h in t.hits]
+    tracks.append(t)
+
+# Print all found tracks
+tno = 0
+for t in tracks:
+  print("#" + str(tno), t)
+  tno += 1
 
