@@ -87,35 +87,6 @@ def are_compatible(hit_0, hit_1, max_slopes=(0.7, 0.7)):
   return abs(hit_1[0] - hit_0[0]) < dxmax and \
          abs(hit_1[1] - hit_0[1]) < dymax
 
-# C function for checking the hittotrack tolerance
-#
-# const float td = 1.0f / (h1_z - h0.z);
-# const float txn = (h1_x - h0.x);
-# const float tyn = (h1_y - h0.y);
-# tx = txn * td;
-# ty = tyn * td;
-#       float fitHitToTrack(const float tx, const float ty, const struct CL_Hit* h0, const float h1_z, const struct CL_Hit* h2) {
-#   // tolerances
-#   const float dz = h2->z - h0->z;
-#   const float x_prediction = h0->x + tx * dz;
-#   const float dx = fabs(x_prediction - h2->x);
-#   const bool tolx_condition = dx < PARAM_TOLERANCE;
-
-#   const float y_prediction = h0->y + ty * dz;
-#   const float dy = fabs(y_prediction - h2->y);
-#   const bool toly_condition = dy < PARAM_TOLERANCE;
-
-#   // Scatter - Updated to last PrPixel
-#   const float scatterNum = (dx * dx) + (dy * dy);
-#   const float scatterDenom = 1.f / (h2->z - h1_z);
-#   const float scatter = scatterNum * scatterDenom * scatterDenom;
-
-#   const bool scatter_condition = scatter < MAX_SCATTER;
-#   const bool condition = tolx_condition && toly_condition && scatter_condition;
-
-#   return condition * scatter + !condition * MAX_FLOAT;
-# }
-
 def check_tolerance(hit_0, hit_1, hit_2, max_tolerance=(0.4, 0.4), max_scatter=0.4):
   td = 1.0 / (hit_1.z - hit_0.z)
   txn = hit_1.x - hit_0.x
@@ -181,19 +152,24 @@ for s0, s1, starting_sensor_index in zip(reversed(sensors[3:]), reversed(sensors
             break
 
         # Continue with following sensors - "forward" track
+        missed_stations = 0
         if h2_found:
-          while (sensor_index_iter >= 0):
+          while (sensor_index_iter >= 0 and missed_stations < 3):
             sensor_index_iter -= 1
+            missed_stations   += 1
             for h2 in sensors[sensor_index_iter]:
               if check_tolerance(forming_track.hits[-2], forming_track.hits[-1], h2):
                 forming_track.add_hit(h2)
+                missed_stations = 0
                 break
 
           # Add track to list of tracks
           if len(forming_track.hits) == 3:
+            # Track is a "weak track", we are not sure if it's noise or a clone
             weak_tracks.append(forming_track)
 
           elif len(forming_track.hits) >= 4:
+            # There is strong evidence it's a good track
             tracks.append(forming_track)
             used_hits += [h.id for h in forming_track.hits]
             strong_track_found = True
@@ -213,4 +189,3 @@ tno = 0
 for t in tracks:
   print("#" + str(tno), t)
   tno += 1
-
