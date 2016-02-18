@@ -67,8 +67,7 @@ class HitsIterator(object):
 
   def __str__(self):
     return str([h for h in self])
-    
-####
+
 
 class Track(object):
   def __init__(self, hits):
@@ -77,56 +76,16 @@ class Track(object):
   def __repr__(self):
     return "Track hits #" + str(len(self.hits)) + ": " + str(self.hits) + "\n"
 
+  def add_hit(self, hit):
+    self.hits.append(hit)
+
+
 def are_compatible(hit_0, hit_1, max_slopes=(0.7, 0.7)):
   hit_distance = abs(hit_1[2] - hit_0[2])
   dxmax = max_slopes[0] * hit_distance
   dymax = max_slopes[1] * hit_distance
   return abs(hit_1[0] - hit_0[0]) < dxmax and \
          abs(hit_1[1] - hit_0[1]) < dymax
-
-####
-
-# Get an event
-import json
-f = open("velojson/0.json")
-event_json = json.loads(f.read())
-f.close()
-
-# Get all sensors, print some information
-sensors = [Sensor(i, event_json) for i in range(0, 52)]
-print(sensors[0], "\n\n", sensors[1], "\n\n", sensors[2])
-
-# We are searching for tracks
-# We will keep a list of used hits to avoid clones
-tracks    = []
-used_hits = []
-
-## Start from the last sensor, create seeds and forward them
-# for s0, s1, starting_sensor_index in zip(reversed(sensors[3:]), reversed(sensors[1:-2]), reversed(range(0, 49))):
-for s0, s1, starting_sensor_index in zip(reversed(sensors[3:5]), reversed(sensors[1:3]), reversed(range(0, 2))):
-  for h0 in [h0 for h0 in s0 if h0[3] not in used_hits]:
-    for h1 in [h1 for h1 in s1 if h1[3] not in used_hits]:
-      
-      if are_compatible(h0, h1):
-        # We have a seed, let's attempt to form a track
-        # with a hit from the following three sensors
-        h2_found = False
-        for sensor_index in [sid for sid in reversed(range(starting_sensor_index-2, starting_sensor_index+1)) if sid >= 0]:
-          for h2 in sensors[sensor_index]:
-            # if under_tolerance(h0, h1, h2):
-            tracks.append( Track([h0, h1, h2]) )
-            used_hits += [h0[3], h1[3], h2[3]]
-            h2_found = True
-            print (len(used_hits))
-            break
-          if h2_found:
-            break
-        if h2_found:
-          break
-
-
-        
-print(tracks)
 
 # C function for checking the hittotrack tolerance
 #
@@ -156,3 +115,78 @@ print(tracks)
 
 #   return condition * scatter + !condition * MAX_FLOAT;
 # }
+
+def check_tolerance(hit_0, hit_1, hit_2, max_tolerance=(0.4, 0.4), max_scatter=0.4):
+  td = 1.0 / (hit_1.z - hit_0.z)
+  txn = hit_1.x - hit_0.x
+  tyn = hit_1.y - hit_0.y
+  tx = txn * td
+  ty = tyn * td
+
+  dz = hit_2.z - hit_0.z
+  x_prediction = hit_0.x + tx * dz
+  dx = abs(x_prediction - hit_2.x)
+  tolx_condition = dx < max_tolerance[0]
+
+  y_prediction = hit_0.y + ty * dz
+  dy = abs(y_prediction - hit_2.y)
+  toly_condition = dy < max_tolerance[1]
+
+  scatterNum = (dx * dx) + (dy * dy)
+  scatterDenom = 1.0 / (hit_2.z - hit_1.z)
+  scatter = scatterNum * scatterDenom * scatterDenom
+
+  scatter_condition = scatter < max_scatter
+  return tolx_condition and toly_condition and scatter_condition
+
+####
+
+# Get an event
+import json
+f = open("velojson/0.json")
+event_json = json.loads(f.read())
+f.close()
+
+# Get all sensors, print some information
+sensors = [Sensor(i, event_json) for i in range(0, 52)]
+print(sensors[0], "\r\n\r\n", sensors[1], "\r\n\r\n", sensors[2])
+
+# We are searching for tracks
+# We will keep a list of used hits to avoid clones
+tracks    = []
+used_hits = []
+
+## Start from the last sensor, create seeds and forward them
+# for s0, s1, starting_sensor_index in zip(reversed(sensors[3:]), reversed(sensors[1:-2]), reversed(range(0, 49))):
+for s0, s1, starting_sensor_index in zip(reversed(sensors[3:]), reversed(sensors[1:-2]), reversed(range(0, 49))):
+  for h0 in [h0 for h0 in s0 if h0.id not in used_hits]:
+    for h1 in [h1 for h1 in s1 if h1.id not in used_hits]:
+      
+      if are_compatible(h0, h1):
+        # We have a seed, let's attempt to form a track
+        # with a hit from the following three sensors
+        forming_track = Track()
+        h2_found = False
+        sensor_index_iter = -1
+        for sensor_index in [sid for sid in reversed(range(starting_sensor_index-2, starting_sensor_index+1)) if sid >= 0]:
+          for h2 in sensors[sensor_index]:
+            # if under_tolerance(h0, h1, h2):
+            tracks.append( Track([h0, h1, h2]) )
+            used_hits += [h0.id, h1.id, h2.id]
+            h2_found = True
+            sensor_index_iter = sensor_index
+            break
+          if h2_found:
+            break
+
+        # Continue with following sensors - "forward" track
+        while (sensor_index_iter >= 0):
+          sensor_index_iter -= 1
+          for h2 in sensors[sensor_index_iter]:
+            if (check_tolerance())
+
+
+
+        
+print(tracks)
+
