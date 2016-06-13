@@ -11,7 +11,7 @@ class Sensor(object):
     return "Sensor " + str(self.sensor_number) + ":\n" + \
       " At z: " + str(self.get_z()) + "\n" + \
       " Number of hits: " + str(self.get_number_of_hits()) + "\n" + \
-      " Hits (ID {x, y, z}): " + str(self.hits)
+      " Hits (id {x, y, z}): " + str(self.hits)
       
   def get_z(self):
     return self.json_event["sensor_module_z"][self.sensor_number]
@@ -46,10 +46,10 @@ class HitsIterator(object):
     self.sensor_number = sensor_number
     self.starting_index = json_event["sensor_hits_starting_index"][sensor_number]
     self.number_of_hits = json_event["sensor_number_of_hits"][sensor_number]
-    self.hit_X = json_event["hit_X"]
-    self.hit_Y = json_event["hit_Y"]
-    self.hit_Z = json_event["hit_Z"]
-    self.hit_ID = json_event["hit_ID"]
+    self.hit_X = json_event["hit_x"]
+    self.hit_Y = json_event["hit_y"]
+    self.hit_Z = json_event["hit_z"]
+    self.hit_ID = json_event["hit_id"]
     self.index = self.starting_index - 1
     self.last_index = self.starting_index + self.number_of_hits
 
@@ -115,12 +115,12 @@ def check_tolerance(hit_0, hit_1, hit_2, max_tolerance=(0.4, 0.4), max_scatter=0
 # Get an event
 import json
 f = open("velojson/0.json")
-event_json = json.loads(f.read())
+event_json = json.loads(f.read())["event"]
 f.close()
 
 # Get all sensors, print some information
 sensors = [Sensor(i, event_json) for i in range(0, 52)]
-print(sensors[0], "\r\n", sensors[1], "\r\n", sensors[2])
+print(sensors[0], "\n", sensors[1], "\n", sensors[2])
 
 # We are searching for tracks
 # We will keep a list of used hits to avoid clones
