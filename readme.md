@@ -41,31 +41,31 @@ is shipped with this project.
 >    Python 3.4.3 (default, Mar 31 2016, 20:42:37) 
 >    [GCC 5.3.1 20151207 (Red Hat 5.3.1-2)] on linux
 >    Type "help", "copyright", "credits" or "license" for more information.
->    >>> import event_model as em
->    >>> import json
->    >>> f = open("velojson/0.json")
->    >>> json_data = json.loads(f.read())
->    >>> event = em.event(json_data)
->    >>> f.close()
+>    import event_model as em
+>    import json
+>    f = open("velojson/0.json")
+>    json_data = json.loads(f.read())
+>    event = em.event(json_data)
+>    f.close()
 
 The LHCb Velopix detector has 52 sensors. Spread across the sensors,
 we should have many hits, depending on the event we are on.
 
->    >>> print(len(event.sensors))
+>    print(len(event.sensors))
 >    52
->    >>> print(len(event.hits))
+>    print(len(event.hits))
 >    1003
 
 Hits are composed of an ID, and {x, y, z} coordinates.
 
->    >>> print(event.hits[0])
+>    print(event.hits[0])
 >    #117979 {-3.385275, 13.436796, -275.531006}
 
 Sensors are placed at some z in the detector. Each sensor
 may have as many hits as particles crossed by it, plus some noise to
 make things interesting.
 
->    >>> print(event.sensors[0])
+>    print(event.sensors[0])
 >    Sensor 0:
 >     At z: -275
 >     Number of hits: 18
@@ -74,10 +74,10 @@ make things interesting.
 A simplistic implementation runs through all sensors sequentially,
 finding tracks by matching hits in a straight line.
 
->    >>> tracks = classical_solver().solve(event)
->    >>> len(tracks)
+>    tracks = classical_solver().solve(event)
+>    len(tracks)
 >    117
->    >>> print(tracks[0])
+>    print(tracks[0])
 >    Track hits #14: [#53557115 {5.485382, -22.965059, 736.968994}, #51465608 {5.115919, -21.623325, 686.968994}, #49373845 {4.785345, -20.28159, 636.968994}, #47282337 {4.435328, -18.959301, 586.968994}, #45196219 {3.754736, -16.295275, 486.968994}, #43110101 {3.093594, -13.611805, 386.968994}, #41020905 {2.646347, -11.608925, 311.968994}, #38928886 {2.315776, -10.267189, 261.968994}, #36834557 {2.160213, -9.567154, 236.968994}, #34078922 {2.100107, -9.273705, 225.531006}, #31983573 {1.944543, -8.573669, 200.531006}, #29887968 {1.769534, -7.89308, 175.531006}, #27792619 {1.613971, -7.193043, 150.531006}, #25697270 {1.438962, -6.512453, 125.530998}]
 
 Finally, we should validate these results, and we'll look
@@ -92,8 +92,8 @@ at three things:
     Ghost Tracks: Tracks that are incorrect, either created by noise or by incorrectly reconstructing a track.
     # incorrectly reconstructed / # all reconstructed
 
->    >>> import validator_lite as vl
->    >>> vl.validate_print([json_data], [tracks])
+>    import validator_lite as vl
+>    vl.validate_print([json_data], [tracks])
 >    117 tracks including        3 ghosts (  2.6%). Event average   2.6%
 >                  velo :      107 from      114 ( 93.9%,  93.9%)        2 clones (  1.87%), purity: ( 98.99%,  98.99%),  hitEff: ( 98.01%,  98.01%)
 >                  long :       39 from       39 (100.0%, 100.0%)        2 clones (  5.13%), purity: ( 97.98%,  97.98%),  hitEff: ( 96.74%,  96.74%)
