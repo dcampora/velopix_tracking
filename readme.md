@@ -92,6 +92,8 @@ at three things:
 *   Ghost Tracks: Tracks that are incorrect, either created by noise or by incorrectly reconstructing a track.
     \# incorrectly reconstructed / \# all reconstructed
 
+
+
     import validator_lite as vl
     vl.validate_print([json_data], [tracks])
     117 tracks including        3 ghosts (  2.6%). Event average   2.6%
