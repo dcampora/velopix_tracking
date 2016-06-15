@@ -84,17 +84,17 @@ Finally, we should validate these results, and we'll look
 at three things:
 
 *   Reconstruction Efficiency: The fraction of real particles we have reconstructed.
-    \# correctly reconstructed / \# real tracks
+        > \# correctly reconstructed / \# real tracks
 
 *   Clone Tracks: Tracks that are similar to other correctly reconstructed tracks.
-    \# clone tracks / \# correctly reconstructed
+        > \# clone tracks / \# correctly reconstructed
 
 *   Ghost Tracks: Tracks that are incorrect, either created by noise or by incorrectly reconstructing a track.
-    \# incorrectly reconstructed / \# all reconstructed
+        > \# incorrectly reconstructed / \# all reconstructed
 
 We will get the validation detailed for different kinds of particles.
 
-    import validator_lite as vl
+    \> import validator_lite as vl
     vl.validate_print([json_data], [tracks])
     117 tracks including        3 ghosts (  2.6%). Event average   2.6%
                   velo :      107 from      114 ( 93.9%,  93.9%)        2 clones (  1.87%), purity: ( 98.99%,  98.99%),  hitEff: ( 98.01%,  98.01%)
