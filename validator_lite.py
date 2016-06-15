@@ -282,7 +282,7 @@ def ghost_rate(t2p):
     nghosts = len(ghosts(t2p))
     return float(nghosts)/ntracks, nghosts
 
-def validate(events_json_data, tracks_list):
+def validate_print(events_json_data, tracks_list):
     tracking_data = []
     for event, tracks in zip(events_json_data, tracks_list):
         tracking_data.append((parse_json_data(event), tracks))
@@ -335,9 +335,8 @@ def validate(events_json_data, tracks_list):
     print(eff_long_fromb)
     print(eff_long_fromb5)
 
-def validate_efficiency(events_json_data, tracks_list, particle_type="long>5GeV"):
-    '''Returns just the Reconstruction Efficiency of the particle_type requested, 
-    as a value in [0,1].
+def validate(events_json_data, tracks_list, particle_type="long>5GeV"):
+    '''Returns just the Efficiency object of the particle_type requested.
 
     particle_type can be one of {'velo', 'long', 'long>5GeV', 'long_strange',
     'long_strange>5GeV', 'long_fromb', 'long_fromb>5GeV'}.
@@ -356,10 +355,44 @@ def validate_efficiency(events_json_data, tracks_list, particle_type="long>5GeV"
         'long_fromb>5GeV': lambda p: p.islong and p.over5 and p.fromb and (abs(p.pid) != 11)
     }
 
-    re = None
+    eff = None
     for event, tracks in tracking_data:
         weights = comp_weights(tracks, event)
-        re = update_efficiencies(re, event, tracks, weights, particle_type
+        eff = update_efficiencies(eff, event, tracks, weights, particle_type
                 , particle_lambda[particle_type])
 
-    return re.avg_recoeff / 100.0
+    return eff
+
+def validate_efficiency(events_json_data, tracks_list, particle_type="long>5GeV"):
+    '''Returns just the Reconstruction Efficiency of the particle_type requested,
+    as a value in [0,1].
+    '''
+    return validate(events_json_data, tracks_list, particle_type).recoeffT / 100.0
+
+def validate_clone_fraction(events_json_data, tracks_list, particle_type="long>5GeV"):
+    '''Returns just the Clone Fraction of the particle_type requested,
+    as a value in [0,1].
+    '''
+    eff = validate(events_json_data, tracks_list, particle_type)
+    return eff.n_clones / eff.n_reco
+
+def validate_ghost_fraction(events_json_data, tracks_list):
+    '''Returns just the Clone Fraction of the particle_type requested,
+    as a value in [0, 1].
+    '''
+    tracking_data = []
+    for event, tracks in zip(events_json_data, tracks_list):
+        tracking_data.append((parse_json_data(event), tracks))
+
+    n_tracks = 0
+    avg_ghost_rate = 0.0
+    n_allghsots = 0
+    for event, tracks in tracking_data:
+        n_tracks += len(tracks)
+        weights = comp_weights(tracks, event)
+        t2p, _ = hit_purity(tracks, event.particles, weights)
+        grate, nghosts = ghost_rate(t2p)
+        n_allghsots += nghosts
+        avg_ghost_rate += grate
+
+    return n_allghsots / n_tracks
