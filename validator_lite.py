@@ -335,3 +335,31 @@ def validate(events_json_data, tracks_list):
     print(eff_long_fromb)
     print(eff_long_fromb5)
 
+def validate_efficiency(events_json_data, tracks_list, particle_type="long>5GeV"):
+    '''Returns just the Reconstruction Efficiency of the particle_type requested, 
+    as a value in [0,1].
+
+    particle_type can be one of {'velo', 'long', 'long>5GeV', 'long_strange',
+    'long_strange>5GeV', 'long_fromb', 'long_fromb>5GeV'}.
+    '''
+    tracking_data = []
+    for event, tracks in zip(events_json_data, tracks_list):
+        tracking_data.append((parse_json_data(event), tracks))
+
+    particle_lambda = {
+        'velo': lambda p: p.isvelo and (abs(p.pid) != 11),
+        'long': lambda p: p.islong and (abs(p.pid) != 11),
+        'long>5GeV': lambda p: p.islong and p.over5 and (abs(p.pid) != 11),
+        'long_strange': lambda p: p.islong and p.strangelong and (abs(p.pid) != 11),
+        'long_strange>5GeV': lambda p: p.islong and p.over5 and p.strangelong and (abs(p.pid) != 11),
+        'long_fromb': lambda p: p.islong and p.fromb and (abs(p.pid) != 11),
+        'long_fromb>5GeV': lambda p: p.islong and p.over5 and p.fromb and (abs(p.pid) != 11)
+    }
+
+    re = None
+    for event, tracks in tracking_data:
+        weights = comp_weights(tracks, event)
+        re = update_efficiencies(re, event, tracks, weights, particle_type
+                , particle_lambda[particle_type])
+
+    return re.avg_recoeff / 100.0
