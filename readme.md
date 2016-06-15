@@ -83,14 +83,14 @@ finding tracks by matching hits in a straight line.
 Finally, we should validate these results, and we'll look
 at three things:
 
-*    Reconstruction Efficiency: The fraction of real particles we have reconstructed.
-    # correctly reconstructed / # real tracks
+*   Reconstruction Efficiency: The fraction of real particles we have reconstructed.
+    \# correctly reconstructed / \# real tracks
 
 *   Clone Tracks: Tracks that are similar to other correctly reconstructed tracks.
-    # clone tracks / # correctly reconstructed
+    \# clone tracks / \# correctly reconstructed
 
 *   Ghost Tracks: Tracks that are incorrect, either created by noise or by incorrectly reconstructing a track.
-    # incorrectly reconstructed / # all reconstructed
+    \# incorrectly reconstructed / \# all reconstructed
 
     import validator_lite as vl
     vl.validate_print([json_data], [tracks])
