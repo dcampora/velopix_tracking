@@ -74,6 +74,7 @@ make things interesting.
 A simplistic implementation runs through all sensors sequentially,
 finding tracks by matching hits in a straight line.
 
+    > from classical_solver import classical_solver
     > tracks = classical_solver().solve(event)
     > len(tracks)
     117
