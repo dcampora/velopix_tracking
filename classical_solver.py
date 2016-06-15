@@ -1,10 +1,11 @@
-##
-## @brief      Classical track reconstruction
-##
-
 from event_model import *
 
 class classical_solver:
+  '''The classical solver.
+
+  It sequentially traverses all sensor modules, marking
+  hits as used in the way.
+  '''
   def __init__(self, max_slopes=(0.7, 0.7), max_tolerance=(0.4, 0.4), max_scatter=0.4):
     self.__max_slopes = max_slopes
     self.__max_tolerance = max_tolerance
@@ -47,8 +48,7 @@ class classical_solver:
     tracks      = []
     used_hits   = []
 
-    ## Start from the last sensor, create seeds and forward them
-    # for s0, s1, starting_sensor_index in zip(reversed(sensors[3:]), reversed(sensors[1:-2]), reversed(range(0, 49))):
+    # Start from the last sensor, create seeds and forward them
     for s0, s1, starting_sensor_index in zip(reversed(event.sensors[3:]), reversed(event.sensors[1:-2]), reversed(range(0, len(event.sensors) - 3))):
       for h0 in [h0 for h0 in s0 if h0.id not in used_hits]:
         for h1 in [h1 for h1 in s1 if h1.id not in used_hits]:

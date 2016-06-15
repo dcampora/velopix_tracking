@@ -358,8 +358,8 @@ def validate(events_json_data, tracks_list, particle_type="long>5GeV"):
     eff = None
     for event, tracks in tracking_data:
         weights = comp_weights(tracks, event)
-        eff = update_efficiencies(eff, event, tracks, weights, particle_type
-                , particle_lambda[particle_type])
+        eff = update_efficiencies(eff, event, tracks, weights, particle_type,
+            particle_lambda[particle_type])
 
     return eff
 

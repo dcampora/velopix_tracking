@@ -1,7 +1,7 @@
 import hashlib
 
 class event(object):
-  '''Event defined by its json description'''
+  '''Event defined by its json description.'''
   def __init__(self, json_description):
     self.event = json_description["event"]
     self.montecarlo = json_description["montecarlo"]
@@ -20,7 +20,7 @@ class event(object):
 
 
 class track(object):
-  '''Track, a list of hits'''
+  '''A track, essentially a list of hits.'''
   def __init__(self, hits):
     self.hits = hits
 
@@ -40,17 +40,21 @@ class track(object):
     return not self.__eq__(other)
 
   def __hash__(self):
-      return int.from_bytes(hashlib.sha256(''.join([str(h.id) for h in self.hits]).encode('utf-8')).digest(), byteorder='big')
+      return int.from_bytes(hashlib.sha256(
+        ''.join([str(h.id) for h in self.hits]).encode('utf-8')).digest(), byteorder='big')
 
 
 class hit(object):
-  '''A hit, composed of an id and its x, y and z coordinates'''
+  '''A hit, composed of an id and its x, y and z coordinates.
+  It may optionally contain the number of the sensor where
+  the hit happened.
+  '''
   def __init__(self, x, y, z, hit_id, sensor=-1):
     self.x = x
     self.y = y
     self.z = z
     self.id = hit_id
-    self.sensor = sensor
+    self.sensor_number = sensor
 
   def __getitem__(self, index):
     if (index<0 or index>2):
@@ -75,6 +79,13 @@ class hit(object):
 
 
 class sensor(object):
+  '''A sensor is identified by its number.
+  It also contains the z coordinate in which it sits, and
+  the list of hits it holds.
+
+  Note sensors are ordered by z, so the less the sensor_number,
+  the less the z.
+  '''
   def __init__(self, sensor_number, z, hits):
     self.sensor_number = sensor_number
     self.hits = hits
