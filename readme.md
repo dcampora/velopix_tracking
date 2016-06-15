@@ -94,8 +94,8 @@ at three things:
 
 We will get the validation detailed for different kinds of particles.
 
-    \> import validator_lite as vl
-    vl.validate_print([json_data], [tracks])
+    > import validator_lite as vl
+    > vl.validate_print([json_data], [tracks])
     117 tracks including        3 ghosts (  2.6%). Event average   2.6%
                   velo :      107 from      114 ( 93.9%,  93.9%)        2 clones (  1.87%), purity: ( 98.99%,  98.99%),  hitEff: ( 98.01%,  98.01%)
                   long :       39 from       39 (100.0%, 100.0%)        2 clones (  5.13%), purity: ( 97.98%,  97.98%),  hitEff: ( 96.74%,  96.74%)
