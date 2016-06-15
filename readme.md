@@ -92,7 +92,7 @@ at three things:
 *   Ghost Tracks: Tracks that are incorrect, either created by noise or by incorrectly reconstructing a track.
     \# incorrectly reconstructed / \# all reconstructed
 
-
+We will get the validation detailed for different kinds of particles.
 
     import validator_lite as vl
     vl.validate_print([json_data], [tracks])
