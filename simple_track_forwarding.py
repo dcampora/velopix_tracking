@@ -3,6 +3,13 @@ import matplotlib.pyplot as plt
 import json
 import math
 
+def open_file(number):
+  f = open("velojson/" + str(number) + ".json")
+  json_data = json.loads(f.read())
+  event = em.event(json_data)
+  f.close()
+  return json_data, event
+
 def are_compatible(hit_0, hit_1, max_slopes=(0.7, 0.7)):
   hit_distance = abs(hit_1[2] - hit_0[2])
   dxmax = max_slopes[0] * hit_distance
@@ -46,11 +53,18 @@ color_id = 0
 # Some constants or default values
 extrapolation_z = 1000
 limits_xy = (800, 800)
-maximum_hits_in_track = 24
+maximum_hits_in_track = 25
 foldername = "/home/dcampora/projects/tracking_wheels/graphs/"
 filename = "default.png"
-figure = plt.figure(figsize=(16, 9))
 max_slope = (0.7, 0.7)
+number_of_events = 1
+
+# Some default values for the figure
+fig = plt.figure(figsize=(16, 9))
+ax = plt.axes()
+plt.title("", fontdict={'fontsize': 20, 'family': 'source code pro'})
+plt.xlabel("", fontdict={'family': 'source code pro'})
+plt.ylabel("", fontdict={'family': 'source code pro'})
 
 # f = open("velojson/0.json")
 # json_data = json.loads(f.read())
@@ -100,72 +114,107 @@ max_slope = (0.7, 0.7)
 # plt.scatter(mc_tracks_hits["x"], mc_tracks_hits["y"], color=mc_tracks_hits["color"], s=mc_tracks_hits["weight"])
 
 ## Histogram of hits in a track's distances to others
-number_of_events = 1
-distances = []
-distances_to_other = []
-total_mc_segments = [0 for _ in range(maximum_hits_in_track)]
-found_mc_segments = [0 for _ in range(maximum_hits_in_track)]
-for i in range(number_of_events):
-  # Get an event
-  f = open("velojson/" + str(i) + ".json")
-  json_data = json.loads(f.read())
-  event = em.event(json_data)
-  f.close()
-  hit_dictionary = {h.id:h for h in event.hits}
+# number_of_events = 1
+# distances = []
+# distances_to_other = []
+# total_mc_segments = [0 for _ in range(maximum_hits_in_track)]
+# found_mc_segments = [0 for _ in range(maximum_hits_in_track)]
+# for i in range(number_of_events):
+#   # Get an event
+#   hit_dictionary = {h.id:h for h in event.hits}
 
-  max_slopes = [(i/100, i/100) for i in range(30, 70, 1)]
-  for max_slope in max_slopes:
-    # # Populate extrapolated_hits
-    # Get all pairs of consecutive hits in consecutive sensors
-    extrapolated_segments = []
-    for s0, s1 in zip(event.sensors[:event.number_of_sensors-2], event.sensors[2:]):
-      for h0 in s0:
-        for h1 in s1:
-          if are_compatible(h0, h1, max_slope):
-            x, y = simple_extrapolation(h0, h1, extrapolation_z)
-            if abs(x) < limits_xy[0] and abs(y) < limits_xy[1]:
-              extrapolated_segments.append(em.segment(x, y, [h0, h1], color=default_color))
+#   # # Populate extrapolated_hits
+#   # Get all pairs of consecutive hits in consecutive sensors
+#   extrapolated_segments = []
+#   for s0, s1 in zip(event.sensors[:event.number_of_sensors-2], event.sensors[2:]):
+#     for h0 in s0:
+#       for h1 in s1:
+#         # if are_compatible(h0, h1, max_slope):
+#         x, y = simple_extrapolation(h0, h1, extrapolation_z)
+#         if abs(x) < limits_xy[0] and abs(y) < limits_xy[1]:
+#           extrapolated_segments.append(em.segment(x, y, [h0, h1], color=default_color))
 
-    ## Plot with average distances to hits in the same track
-    # List of track segments
-    mc_extrapolated_segments = []
-    mc_tracks = []
-    mc_desc = {event.montecarlo['description'][i]:i for i in range(len(event.montecarlo['description']))}
-    for p in event.montecarlo['particles']:
-      hits = p[mc_desc['mcp_hits']]
-      mc_tracks.append([hit_dictionary[h] for h in hits])
+#   ## Plot with average distances to hits in the same track
+#   # List of track segments
+#   mc_extrapolated_segments = []
+#   mc_tracks = []
+#   mc_desc = {event.montecarlo['description'][i]:i for i in range(len(event.montecarlo['description']))}
+#   for p in event.montecarlo['particles']:
+#     hits = p[mc_desc['mcp_hits']]
+#     mc_tracks.append([hit_dictionary[h] for h in hits])
 
-    for mc_track in mc_tracks:
-      mc_track_segments = []
-      for n in range(len(mc_track)-1):
-        h0, h1 = mc_track[n], mc_track[n+1]
-        if h0.sensor_number != h1.sensor_number:
-          x, y = simple_extrapolation(h0, h1, extrapolation_z)
-          mc_track_segments.append(em.segment(x, y, [h0, h1]))
-      mc_extrapolated_segments.append(mc_track_segments)
+#   for mc_track in mc_tracks:
+#     mc_track_segments = []
+#     for n in range(len(mc_track)-1):
+#       h0, h1 = mc_track[n], mc_track[n+1]
+#       if h0.sensor_number != h1.sensor_number:
+#         x, y = simple_extrapolation(h0, h1, extrapolation_z)
+#         mc_track_segments.append(em.segment(x, y, [h0, h1]))
+#     mc_extrapolated_segments.append(mc_track_segments)
 
-      # Percentage of real track segments in extrapolated_segments
-      total_mc_segments[len(mc_track_segments)] += len(mc_track_segments)
-      for mc_segment in mc_track_segments:
-        if mc_segment in extrapolated_segments:
-          found_mc_segments[len(mc_track_segments)] += 1
+#     # Percentage of real track segments in extrapolated_segments
+#     total_mc_segments[len(mc_track_segments)] += len(mc_track_segments)
+#     for mc_segment in mc_track_segments:
+#       if mc_segment in extrapolated_segments:
+#         found_mc_segments[len(mc_track_segments)] += 1
 
-    # existing_segments = []
-    # for i in range(maximum_hits_in_track):
-    #   if total_mc_segments[i] == 0:
-    #     existing_segments.append(1)
-    #   else:
-    #     existing_segments.append(found_mc_segments[i] / total_mc_segments[i])
-    three_hit_mc_segments.append(found_mc_segments[3] / total_mc_segments[3])
+#   existing_segments = []
+#   for i in range(maximum_hits_in_track):
+#     if total_mc_segments[i] == 0:
+#       existing_segments.append(1)
+#     else:
+#       existing_segments.append(found_mc_segments[i] / total_mc_segments[i])
+  
+  # three_hit_mc_segments.append(found_mc_segments[3] / total_mc_segments[3])
 
 
   # Scatterplot the existing_segments
   # plt.scatter([i for i in range(maximum_hits_in_track)], existing_segments, color=default_color)
-  # plt.bar([i for i in range(maximum_hits_in_track)][2:], existing_segments[2:], color=default_color)
-  
-  
-  plt.xlabel("Reconstructible segments with varying max slope\nfor track segments coming from 3 hit tracks")
-  filename = "single_event/2_reconstructible.png"
+
+## All reconstructible segments with no slope limit (100 events)
+plot_title = "All reconstructible segments with condition\ns0 == s1 - 2 or s0 == s1 - 1"
+plt.xlabel("Track size")
+plt.ylabel("Percentage of segments")
+
+def classical_condition(hit_0, hit_1, max_slope=(0.7, 0.7)):
+  # Sensors must be separted by two, there is a max slope
+  return hit_0.sensor_number == hit_1.sensor_number - 2 or hit_0.sensor_number == hit_1.sensor_number - 1
+  # and are_compatible(hit_0, hit_1, max_slope)
+
+# condition = lambda h0, h1: True
+condition = classical_condition
+
+number_of_events = 5000
+total_mc_segments = [0 for _ in range(maximum_hits_in_track)]
+reconstructible_mc_segments = [0 for _ in range(maximum_hits_in_track)]
+for i in range(number_of_events):
+  json_data, event = open_file(i)
+  hit_dictionary = {h.id:h for h in event.hits}
+  mc_desc = {event.montecarlo['description'][i]:i for i in range(len(event.montecarlo['description']))}
+  for p in event.montecarlo['particles']:
+    mc_track = p[mc_desc['mcp_hits']]
+    if len(mc_track) < maximum_hits_in_track:
+      total_mc_segments[len(mc_track)] += len(mc_track) - 1
+      # Take particles two by two
+      for n in range(len(mc_track)-1):
+        h0, h1 = hit_dictionary[mc_track[n]], hit_dictionary[mc_track[n+1]]
+        if condition(h0, h1):
+          reconstructible_mc_segments[len(mc_track)] += 1
+existing_segments = []
+for i in range(len(total_mc_segments)):
+  if total_mc_segments[i] == 0:
+    existing_segments.append(1)
+  else:
+    existing_segments.append(reconstructible_mc_segments[i] / total_mc_segments[i])
+
+plt.bar([i for i in range(maximum_hits_in_track)][3:], existing_segments[3:], color=default_color)
+for rect, label in zip(ax.patches, ['%.2f' % a for a in existing_segments[3:]]):
+    height = rect.get_height()
+    ax.text(rect.get_x() + rect.get_width()/2, height-0.03*height, label, ha='center', va='bottom', fontdict={'fontsize': 10, 'family': 'source code pro'})
+
+filename = "single_event/reconstructible_2.png"
+
+
 
     # if len(mc_track_segments) > 2:
     #   # Get distances between mc hits in the same track
@@ -189,5 +238,6 @@ for i in range(number_of_events):
 
 # Print whatever plot was created
 
+plt.title(plot_title + " (" + str(number_of_events) + " events)\n")
 plt.savefig(foldername + filename)
 plt.show()
