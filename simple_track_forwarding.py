@@ -172,7 +172,7 @@ plt.ylabel("", fontdict={'family': 'source code pro'})
   # plt.scatter([i for i in range(maximum_hits_in_track)], existing_segments, color=default_color)
 
 ## All reconstructible segments with no slope limit (100 events)
-plot_title = "All reconstructible segments with condition\ns0 == s1 - 2 or s0 == s1 - 1"
+plot_title = "All reconstructible segments with condition\ns0 == s1 - 1|2 and s1 == s2 - 1|2"
 plt.xlabel("Track size")
 plt.ylabel("Percentage of segments")
 
@@ -182,9 +182,10 @@ def classical_condition(hit_0, hit_1, max_slope=(0.7, 0.7)):
   # and are_compatible(hit_0, hit_1, max_slope)
 
 # condition = lambda h0, h1: True
-condition = classical_condition
+condition = lambda h0, h1, h2: (h0.sensor_number == h1.sensor_number - 2 or h0.sensor_number == h1.sensor_number - 1) and \
+                               (h1.sensor_number == h2.sensor_number - 2 or h1.sensor_number == h2.sensor_number - 1)
 
-number_of_events = 1
+number_of_events = 5000
 total_mc_segments = [0 for _ in range(maximum_hits_in_track)]
 reconstructible_mc_segments = [0 for _ in range(maximum_hits_in_track)]
 for i in range(number_of_events):
@@ -194,11 +195,11 @@ for i in range(number_of_events):
   for p in event.montecarlo['particles']:
     mc_track = p[mc_desc['mcp_hits']]
     if len(mc_track) < maximum_hits_in_track:
-      total_mc_segments[len(mc_track)] += len(mc_track) - 1
+      total_mc_segments[len(mc_track)] += len(mc_track) - 2
       # Take particles two by two
-      for n in range(len(mc_track)-1):
-        h0, h1 = hit_dictionary[mc_track[n]], hit_dictionary[mc_track[n+1]]
-        if condition(h0, h1):
+      for n in range(len(mc_track)-2):
+        h0, h1, h2 = hit_dictionary[mc_track[n]], hit_dictionary[mc_track[n+1]], hit_dictionary[mc_track[n+2]]
+        if condition(h0, h1, h2):
           reconstructible_mc_segments[len(mc_track)] += 1
 existing_segments = []
 for i in range(len(total_mc_segments)):
@@ -210,7 +211,8 @@ for i in range(len(total_mc_segments)):
 plt.bar([i for i in range(maximum_hits_in_track)][3:], existing_segments[3:], color=default_color)
 for rect, label in zip(ax.patches, ['%.2f' % a for a in existing_segments[3:]]):
     height = rect.get_height()
-    ax.text(rect.get_x() + rect.get_width()/2, height-0.1, label, ha='center', va='bottom', fontdict={'fontsize': 10, 'family': 'source code pro'})
+    ax.text(rect.get_x() + rect.get_width()/2, height-0.03, label, ha='center', va='bottom',
+      fontdict={'fontsize': 10, 'family': 'source code pro'})
 
 filename = "single_event/reconstructible.png"
 
