@@ -1,5 +1,24 @@
 import hashlib
 
+class segment(object):
+  def __init__(self, x, y, hits, color=None):
+    self.hits = hits
+    self.x = x
+    self.y = y
+    self.color = color
+
+  def __getitem__(self, index):
+    if (index==0): return self.x
+    elif (index==1): return self.y
+    else: raise IndexError
+
+  def __eq__(self, other):
+    return self.hits == other.hits
+
+  def __ne__(self, other):
+    return not self.__eq__(other)
+
+
 class event(object):
   '''Event defined by its json description.'''
   def __init__(self, json_description):
@@ -57,12 +76,10 @@ class hit(object):
     self.sensor_number = sensor
 
   def __getitem__(self, index):
-    if (index<0 or index>2):
-      raise IndexError
-
     if (index==0): return self.x
     elif(index==1): return self.y
-    else: return self.z
+    elif(index==2): return self.z
+    else: raise IndexError
 
   def __repr__(self):
     return "#" + str(self.id) + " {" + str(self.x) + ", " + \
