@@ -184,7 +184,7 @@ def classical_condition(hit_0, hit_1, max_slope=(0.7, 0.7)):
 # condition = lambda h0, h1: True
 condition = classical_condition
 
-number_of_events = 5000
+number_of_events = 1
 total_mc_segments = [0 for _ in range(maximum_hits_in_track)]
 reconstructible_mc_segments = [0 for _ in range(maximum_hits_in_track)]
 for i in range(number_of_events):
@@ -210,9 +210,9 @@ for i in range(len(total_mc_segments)):
 plt.bar([i for i in range(maximum_hits_in_track)][3:], existing_segments[3:], color=default_color)
 for rect, label in zip(ax.patches, ['%.2f' % a for a in existing_segments[3:]]):
     height = rect.get_height()
-    ax.text(rect.get_x() + rect.get_width()/2, height-0.03*height, label, ha='center', va='bottom', fontdict={'fontsize': 10, 'family': 'source code pro'})
+    ax.text(rect.get_x() + rect.get_width()/2, height-0.1, label, ha='center', va='bottom', fontdict={'fontsize': 10, 'family': 'source code pro'})
 
-filename = "single_event/reconstructible_2.png"
+filename = "single_event/reconstructible.png"
 
 
 
