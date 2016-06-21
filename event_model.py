@@ -1,11 +1,10 @@
 import hashlib
 
 class segment(object):
-  def __init__(self, x, y, hits, color=None):
+  '''Segment extrapolated.'''
+  def __init__(self, hits, function):
     self.hits = hits
-    self.x = x
-    self.y = y
-    self.color = color
+    self.x, self.y, self.z, self.slope = function(hits)
 
   def __getitem__(self, index):
     if (index==0): return self.x
@@ -36,6 +35,7 @@ class event(object):
       self.hits[self.event["sensor_hits_starting_index"][s] : 
       self.event["sensor_hits_starting_index"][s] + self.event["sensor_number_of_hits"][s]])
       for s in range(0, self.number_of_sensors)]
+    self.hit_dictionary = {h.id:h for h in self.hits}
 
 
 class track(object):
