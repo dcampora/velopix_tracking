@@ -1,3 +1,4 @@
+from itertools import combinations
 import event_model as em
 import matplotlib.pyplot as plt
 import json
@@ -191,33 +192,50 @@ for sensor_oddity in [0]:
     #   n, bins, patches = plt.hist(distances_to_track_segments, 100, normed=0, facecolor=default_color, alpha=0.75)
     #   n, bins, patches = plt.hist(distances_to_any_other_segment, 100, normed=0, facecolor=grey_color, alpha=0.75)
 
+    accept_segments = lambda se0, se1: se0 != se1 \
+      and euclidean_distance(se0, se1) < 5.7 \
+      and abs(se0.z - se1.z) < 100 \
+      and abs(se0.slope[0] - se1.slope[0]) < 2.5 \
+      and abs(se0.slope[1] - se1.slope[1]) < 2.5
 
     # Make scatterplot with segments
-    plot_title = "Segments with cut from pairs with condition\n("+str(i/divisor)+"), ("+str((i+jump)/divisor)+")"
+    plot_title = "Segments with cut requiring three segments with condition\n("+str(i/divisor)+"), ("+str((i+jump)/divisor)+")"
     # Only print extrapolated segments with at least one hit to distance 6 or less
-    cut_extrapolated_segments = []
-    for segment in extrapolated_segments:
-      for other_segment in extrapolated_segments:
-        if segment != other_segment \
-        and euclidean_distance(segment, other_segment) < 5.7 \
-        and abs(segment.z - other_segment.z) < 100 \
-        and abs(segment.slope[0] - other_segment.slope[0]) < 2.5 \
-        and abs(segment.slope[1] - other_segment.slope[1]) < 2.5:
-          cut_extrapolated_segments.append(segment)
-          break
+    cut_extrapolated_segments = set()
+    # Require at least three segments
+    for se0 in extrapolated_segments:
+      if se0 not in cut_extrapolated_segments:
+        found = False
+        for se1 in extrapolated_segments:
+          if accept_segments(se0, se1):
+            for se2 in extrapolated_segments:
+              if accept_segments(se0, se2) and accept_segments(se1, se2):
+                cut_extrapolated_segments.add(se0)
+                cut_extrapolated_segments.add(se1)
+                cut_extrapolated_segments.add(se2)
+                found = True
+                break
+            if found:
+              break
     plt.scatter([a.x for a in cut_extrapolated_segments], [a.y for a in cut_extrapolated_segments], color=default_color)
     
     for mc_track_segments in mc_extrapolated_segments:
-      temp_mc_track_segments = []
-      for segment in mc_track_segments:
-        for other_segment in mc_track_segments:
-          if segment != other_segment \
-          and euclidean_distance(segment, other_segment) < 5.7 \
-          and abs(segment.z - other_segment.z) < 100 \
-          and abs(segment.slope[0] - other_segment.slope[0]) < 2.5 \
-          and abs(segment.slope[1] - other_segment.slope[1]) < 2.5:
-            temp_mc_track_segments.append(segment)
-            break
+      temp_mc_track_segments = set()
+      # Require at least three segments
+      for se0 in mc_track_segments:
+        if se0 not in temp_mc_track_segments:
+          found = False
+          for se1 in mc_track_segments:
+            if accept_segments(se0, se1):
+              for se2 in mc_track_segments:
+                if accept_segments(se0, se2) and accept_segments(se1, se2):
+                  temp_mc_track_segments.add(se0)
+                  temp_mc_track_segments.add(se1)
+                  temp_mc_track_segments.add(se2)
+                  found = True
+                  break
+              if found:
+                break
       plt.scatter([a.x for a in temp_mc_track_segments], [a.y for a in temp_mc_track_segments], color=colors[color_id])
       color_id = (color_id + 1) % len(colors)
 
@@ -238,7 +256,7 @@ for sensor_oddity in [0]:
     plt.title(plot_title)
     # plt.show()
 
-    filename = "single_event/scatters_z10000/scatter_cut_s" + str(sensor_oddity) + "_" + str(i) + ".png"
+    filename = "single_event/scatters_z10000/scatter_cut_triplet_s" + str(sensor_oddity) + "_" + str(i) + ".png"
     plt.savefig(foldername + filename)
     plt.close()
 

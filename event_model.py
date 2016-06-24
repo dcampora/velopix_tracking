@@ -17,6 +17,10 @@ class segment(object):
   def __ne__(self, other):
     return not self.__eq__(other)
 
+  def __hash__(self):
+      return int.from_bytes(hashlib.sha256(
+        ''.join([str(h.id) for h in self.hits]).encode('utf-8')).digest(), byteorder='big')
+
 
 class event(object):
   '''Event defined by its json description.'''
