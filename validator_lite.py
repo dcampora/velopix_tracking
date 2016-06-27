@@ -157,7 +157,7 @@ class Efficiency(object):
 
 def update_efficiencies(eff, event, tracks, weights, label, cond):
     #t2p_filtered = {t:(w,p) for t,(w,p) in t2p.iteritems() if (p is None) or cond(p)}
-    particles_filtered = {p for  p in event.particles if cond(p)}
+    particles_filtered = {p for p in event.particles if cond(p)}
     pidx_filtered = [-1]
     if len(particles_filtered) > 0:
         pidx_filtered, particles_filtered = zip(*[(ip,p) for ip, p in enumerate(event.particles) if cond(p)])
@@ -178,18 +178,14 @@ def comp_weights(tracks, event):
 
     Keyword arguments:
     tracks -- a list of reconstructed tracks
-    event -- an insance of event_model.Event holding all information related to this event.
+    event -- an instance of validator_event holding all information related to this event.
     """
     w = np.zeros((len(tracks), len(event.particles)))
     for i, j in itertools.product(range(len(tracks)), range(len(event.particles))):
         trackhits = tracks[i].hits
         nhits = len(trackhits)
         particle = event.particles[j]
-        # try:
         nhits_from_p = len([h for h in trackhits if event.hit_to_mcp[h].count(particle) > 0])
-        # except:
-        #     print(event.hit_to_mcp)
-        #     raise
         w[i,j] = float(nhits_from_p)/nhits
     return w
 
@@ -281,6 +277,24 @@ def ghost_rate(t2p):
     ntracks = len(t2p.keys())
     nghosts = len(ghosts(t2p))
     return float(nghosts)/ntracks, nghosts
+
+def identify_ghost_tracks(json_data, tracks, cond=lambda p: True):
+    '''Returns a true / false value for the list of tracks passed,
+    that identifies them as a good track or a ghost track.
+
+    Note this method does not say anything about clones.
+    '''
+    event = parse_json_data(json_data)
+    particles_filtered = [p for p in event.particles if cond(p)]
+    pidx_filtered = [-1]
+    if len(particles_filtered) > 0:
+        pidx_filtered, particles_filtered = zip(*[(ip,p) for ip, p in enumerate(event.particles) if cond(p)])
+    else:
+        return [False for _ in tracks]
+    weights = comp_weights(tracks, event)
+    weights_filtered = weights[:,np.array(list(pidx_filtered))]
+    t2p, p2t = hit_purity(tracks, particles_filtered, weights_filtered)
+    return [True if a[1] is not None else False for a in list(t2p.values())]
 
 def validate_print(events_json_data, tracks_list):
     tracking_data = []
