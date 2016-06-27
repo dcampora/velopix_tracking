@@ -290,11 +290,11 @@ def identify_ghost_tracks(json_data, tracks, cond=lambda p: True):
     if len(particles_filtered) > 0:
         pidx_filtered, particles_filtered = zip(*[(ip,p) for ip, p in enumerate(event.particles) if cond(p)])
     else:
-        return [False for _ in tracks]
+        return [0 for _ in tracks]
     weights = comp_weights(tracks, event)
     weights_filtered = weights[:,np.array(list(pidx_filtered))]
     t2p, p2t = hit_purity(tracks, particles_filtered, weights_filtered)
-    return [True if a[1] is not None else False for a in list(t2p.values())]
+    return [1 if a[1] is not None else 0 for a in list(t2p.values())]
 
 def validate_print(events_json_data, tracks_list):
     tracking_data = []
