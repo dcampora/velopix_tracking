@@ -39,10 +39,13 @@ def get_tracks_and_truth(event_number, hit_coord_limits):
   classical = classical_solver()
   classical_tracks = classical.solve(event)
   three_hit_tracks = [t for t in classical_tracks if len(t.hits) == 3]
-  tracks_ghost_list = vl.identify_ghost_tracks(json_data, three_hit_tracks)
-  track_input = [get_normalized_hits(t.hits, hit_coord_limits) for t in three_hit_tracks]
-  truth = tracks_ghost_list
-  return [track_input, truth]
+  if len(three_hit_tracks) > 0:
+    tracks_ghost_list = vl.identify_ghost_tracks(json_data, three_hit_tracks)
+    track_input = [get_normalized_hits(t.hits, hit_coord_limits) for t in three_hit_tracks]
+    truth = tracks_ghost_list
+    return [track_input, truth]
+  else:
+    return [[], []]
 
 def main():
   hit_coord_limits = {
