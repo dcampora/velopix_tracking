@@ -39,7 +39,7 @@ def simple_extrapolation(extrapolation_z):
     x  = hits[0].x + tx * (extrapolation_z - hits[0].z)
     y  = hits[0].y + ty * (extrapolation_z - hits[0].z)
     hit_distance = abs(hits[1][2] - hits[0][2])
-    slope = abs(hits[1][0] - hits[0][0]), abs(hits[1][1] - hits[0][1])
+    slope = abs(hits[1][0] - hits[0][0]) / hit_distance, abs(hits[1][1] - hits[0][1]) / hit_distance
     return x, y, (hits[0].z + hits[1].z) / 2, slope
   return wrapped_function
 
@@ -195,8 +195,8 @@ for sensor_oddity in [0]:
     accept_segments = lambda se0, se1: se0 != se1 \
       and euclidean_distance(se0, se1) < 5.7 \
       and abs(se0.z - se1.z) < 100 \
-      and abs(se0.slope[0] - se1.slope[0]) < 2.5 \
-      and abs(se0.slope[1] - se1.slope[1]) < 2.5
+      and abs(se0.slope[0] - se1.slope[0]) < 0.0032 \
+      and abs(se0.slope[1] - se1.slope[1]) < 0.0074
 
     # Make scatterplot with segments
     plot_title = "Segments with cut requiring three segments with condition\n("+str(i/divisor)+"), ("+str((i+jump)/divisor)+")"
@@ -256,8 +256,8 @@ for sensor_oddity in [0]:
     plt.title(plot_title)
     # plt.show()
 
-    filename = "single_event/scatters_z10000/scatter_cut_triplet_s" + str(sensor_oddity) + "_" + str(i) + ".png"
-    plt.savefig(foldername + filename)
+    filename = "default.png"
+    plt.savefig(filename)
     plt.close()
 
 # plt.show()
