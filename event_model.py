@@ -1,4 +1,3 @@
-from sklearn import linear_model
 from hashlib import sha256
 from math import floor
 
