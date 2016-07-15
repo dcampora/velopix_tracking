@@ -4,6 +4,7 @@ import event_model as em
 import validator_lite as vl
 import numpy as np
 import tensorflow as tf
+from nn_tensorflow import classical_trainer
 
 def open_json_event(event_number, container_folder="velojson/"):
   f = open(container_folder + str(event_number) + ".json")
@@ -26,19 +27,36 @@ def ghost_buster(json_file):
   ##
   ## ###########################
 
-  # Convert into tensorflow format (AOS to SOA)
-  number_train_values = 2000
-  number_eval_values  = 100
+  # # Convert into tensorflow format (AOS to SOA)
+  number_train_values = 200000
+  number_eval_values  = 1000
 
-  training_set = {"x": np.array(json_data['tracks'][:number_train_values]),
-    "y": np.array(json_data['truth'][:number_train_values])}
+  # Respect the ratio
+  training_set = {"x": [], "y": []}
+  number_of_examples = len([a for a in json_data['truth'][:number_train_values] if a == 0]), \
+    len([a for a in json_data['truth'][:number_train_values] if a == 1])
+  min_no_ex = min(number_of_examples[0], number_of_examples[1])
+  good_examples, bad_examples = 0, 0
+  for i in range(number_train_values):
+    if json_data['truth'][i] == 0 and bad_examples < min_no_ex:
+      bad_examples += 1
+    elif json_data['truth'][i] == 1 and good_examples < min_no_ex:
+      good_examples += 1
+    else:
+      continue
+    training_set["x"].append(json_data['tracks'][i])
+    training_set["y"].append(json_data['truth'][i])
+  # print("Number of examples in training set:", len(training_set["x"]))
+
+  training_set = {"x": np.array(training_set["x"]),
+    "y": np.array(training_set["y"])}
   validation_set = {"x": np.array(json_data['tracks'][number_train_values:number_train_values+number_eval_values]),
     "y": np.array(json_data['truth'][number_train_values:number_train_values+number_eval_values])}
 
   model_dir = tempfile.mkdtemp()
-  layers = [100, 50]
+  layers = [100, 100, 100]
   classifier = tf.contrib.learn.DNNClassifier(model_dir=model_dir, hidden_units=layers)
-  h_fc1 = tf.contrib.learn.ops.dnn(h_pool2_flat, [1024], activation=tf.nn.relu, dropout=0.5)
+  # h_fc1 = tf.contrib.learn.ops.dnn(h_pool2_flat, [1024], activation=tf.nn.relu, dropout=0.5)
   
   classifier.fit(x=training_set["x"], y=training_set["y"], steps=200)
   results = classifier.evaluate(x=validation_set["x"], y=validation_set["y"], steps=1)
@@ -73,23 +91,42 @@ def ghost_buster(json_file):
   #   json_data["slopes"].append(slopes)
   
   # number_train_values = 200000
+  # # ratio_train_good_examples = 0.5
   # number_eval_values  = 1000
   # layers = [9, 100, 100, 100, 1]
   # training_rate = 0.9
 
   # json_data_truth = [[a] for a in json_data['truth']]
-  # training_set = {"x": json_data['tracks'][:number_train_values],
-  #   "y": json_data_truth[:number_train_values]}
+
+  # # Respect the ratio
+  # training_set = {"x": [], "y": []}
+  # number_of_examples = len([a[0] for a in json_data_truth[:number_train_values] if a[0] == 0]), \
+  #   len([a[0] for a in json_data_truth[:number_train_values] if a[0] == 1])
+  # min_no_ex = min(number_of_examples[0], number_of_examples[1])
+  # good_examples, bad_examples = 0, 0
+  # for i in range(number_train_values):
+  #   if json_data_truth[i][0] == 0 and bad_examples < min_no_ex:
+  #     bad_examples += 1
+  #   elif json_data_truth[i][0] == 1 and good_examples < min_no_ex:
+  #     good_examples += 1
+  #   else:
+  #     continue
+  #   training_set["x"].append(json_data['tracks'][i])
+  #   training_set["y"].append(json_data_truth[i])
+  # # print("Number of examples in training set:", len(training_set["x"]))
+
+  # # training_set = {"x": json_data['tracks'][:number_train_values],
+  # #   "y": json_data_truth[:number_train_values]}
   # validation_set = {"x": json_data['tracks'][number_train_values:number_train_values+number_eval_values],
   #   "y": json_data_truth[number_train_values:number_train_values+number_eval_values]}
 
   # print("layers, neurons, rate, accuracy")
-  # for num_hidden_layers in [1, 2, 3, 5, 10, 20]:
-  #   for size_hidden_layers in [10, 20, 50, 100, 200]:
+  # for num_hidden_layers in [1, 2, 3, 5, 10]:
+  #   for size_hidden_layers in [10, 20, 50, 100]:
   #     layers = [9] + [size_hidden_layers for _ in range(num_hidden_layers)] + [1]
 
   #     results = {'rate': [], 'accuracy': []}
-  #     for i in range(50, 80, 2):
+  #     for i in range(50, 80, 5):
   #       training_rate = i / 100
 
   #       ct = classical_trainer(layers, {"rate": training_rate})

@@ -1,3 +1,4 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops.math_ops import sigmoid
 from tensorflow.python.ops.rnn_cell import _linear as linear
@@ -29,8 +30,12 @@ class classical_trainer(object):
     for l in self.layers_specification[1:]:
       self.hidden_layers.append(self.linearizer.get(self.hidden_layers[-1], l))
 
+    # Let's add dropout
+    self.keep_prob = tf.placeholder(tf.float32)
+    self.l_dropout = tf.nn.dropout(self.hidden_layers[-1], self.keep_prob)
+
     # ending in a sigmoid
-    self.y = sigmoid(self.hidden_layers[-1])
+    self.y = sigmoid(self.l_dropout)
 
     # training step is determined to minimize the cross entropy
     # with some method
@@ -47,7 +52,7 @@ class classical_trainer(object):
     for i in range(int(len(training_set_x) / batch_size)):
       batch_xs = np.array(training_set_x[i*batch_size:(i+1)*batch_size])
       batch_ys = np.array(training_set_y[i*batch_size:(i+1)*batch_size])
-      self.sess.run(self.train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys})
+      self.sess.run(self.train_step, feed_dict={self.x: batch_xs, self.y_: batch_ys, self.keep_prob: 0.5})
 
   def validate(self, validation_set_x, validation_set_y,):
     # print("Validating predictions ...")
@@ -55,4 +60,5 @@ class classical_trainer(object):
     accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     batch_xs = np.array(validation_set_x)
     batch_ys = np.array(validation_set_y)
-    return self.sess.run(accuracy, feed_dict={self.x: batch_xs, self.y_: batch_ys})
+    return self.sess.run(accuracy, feed_dict={self.x: batch_xs, self.y_: batch_ys, self.keep_prob: 1.0})
+
