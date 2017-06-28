@@ -42,6 +42,10 @@ class classical_solver:
     return tolx_condition and toly_condition and scatter_condition
 
   def solve(self, event):
+    print("Invoking classic solver with\n max slopes: %s\n max tolerance: %s\n\
+ max scatter: %s\n" % \
+ (self.__max_slopes, self.__max_tolerance, self.__max_scatter))
+
     # We are searching for tracks
     # We will keep a list of used hits to avoid clones
     weak_tracks = []

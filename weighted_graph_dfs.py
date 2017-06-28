@@ -17,9 +17,8 @@ dfs = graph_dfs()
 dfs_tracks = dfs.solve(event)
 
 # # Get all tracks by using the classical method and print them
-# print("Invoking classical solver...")
-# classical = classical_solver()
-# classical_tracks = classical.solve(event)
+classical = classical_solver()
+classical_tracks = classical.solve(event)
 
 # Validate the event
 vl.validate_print([json_data], [dfs_tracks])
