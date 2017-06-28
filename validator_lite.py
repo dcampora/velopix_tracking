@@ -146,10 +146,16 @@ class Efficiency(object):
             self.purityT = 100. * self.n_pure / (self.n_reco + self.n_clones)
 
     def __str__(self):
+        clone_percentage = 0
+        if self.n_reco > 0: clone_percentage = 100.*self.n_clones/self.n_reco
+
+        hit_eff = 0
+        if self.n_hits > 0: hit_eff = 100.*self.n_heff/self.n_hits
+
         s = "%18s : %8d from %8d (%5.1f%%, %5.1f%%) %8d clones (%6.2f%%), purity: (%6.2f%%, %6.2f%%),  hitEff: (%6.2f%%, %6.2f%%)"%(self.label
             , self.n_reco, self.n_particles, self.recoeffT, self.avg_recoeff
-            , self.n_clones, 100.*self.n_clones/self.n_reco, self.purityT
-            , self.avg_purity,self.avg_hiteff, 100.*self.n_heff/self.n_hits)
+            , self.n_clones, clone_percentage, self.purityT
+            , self.avg_purity,self.avg_hiteff, hit_eff)
         return s
 
     def __repr__(self):

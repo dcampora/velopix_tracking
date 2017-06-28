@@ -12,12 +12,18 @@ class event(object):
       for i in range(self.event["sensor_hits_starting_index"][s], 
       self.event["sensor_hits_starting_index"][s] + self.event["sensor_number_of_hits"][s]):
         self.hits.append(hit(self.event["hit_x"][i], self.event["hit_y"][i], self.event["hit_z"][i],
-        self.event["hit_id"][i], s))
-    self.sensors = [sensor(s, self.event["sensor_module_z"][s],
-      self.hits[self.event["sensor_hits_starting_index"][s] : 
-      self.event["sensor_hits_starting_index"][s] + self.event["sensor_number_of_hits"][s]])
-      for s in range(0, self.number_of_sensors)]
+        self.event["hit_id"][i], i, s))
+    self.sensors = [
+      sensor(s,
+        self.event["sensor_module_z"][s],
+        self.event["sensor_hits_starting_index"][s],
+        self.event["sensor_number_of_hits"][s],
+        self.hits
+      ) for s in range(0, self.number_of_sensors)
+    ]
 
+  def copy(self):
+    return event({"event": self.event, "montecarlo": self.montecarlo})
 
 class track(object):
   '''A track, essentially a list of hits.'''
@@ -49,11 +55,12 @@ class hit(object):
   It may optionally contain the number of the sensor where
   the hit happened.
   '''
-  def __init__(self, x, y, z, hit_id, sensor=-1):
+  def __init__(self, x, y, z, hit_id, hit_number=-1, sensor=-1):
     self.x = x
     self.y = y
     self.z = z
     self.id = hit_id
+    self.hit_number = hit_number
     self.sensor_number = sensor
 
   def __getitem__(self, index):
@@ -65,7 +72,7 @@ class hit(object):
     else: return self.z
 
   def __repr__(self):
-    return "#" + str(self.id) + " {" + str(self.x) + ", " + \
+    return "#" + str(self.hit_number) + " {" + str(self.x) + ", " + \
            str(self.y) + ", " + str(self.z) + "}"
 
   def __eq__(self, other):
@@ -86,17 +93,21 @@ class sensor(object):
   Note sensors are ordered by z, so the less the sensor_number,
   the less the z.
   '''
-  def __init__(self, sensor_number, z, hits):
+  def __init__(self, sensor_number, z, start_hit, number_of_hits, hits):
     self.sensor_number = sensor_number
-    self.hits = hits
     self.z = z
+    self.hit_start_index = start_hit
+    self.hit_end_index = start_hit + number_of_hits
+    self.__global_hits = hits
 
   def __iter__(self):
-    return iter(self.hits)
+    return iter(self.__global_hits[self.hit_start_index : self.hit_end_index])
 
   def __repr__(self):
     return "Sensor " + str(self.sensor_number) + ":\n" + \
       " At z: " + str(self.z) + "\n" + \
-      " Number of hits: " + str(len(self.hits)) + "\n" + \
-      " Hits (#id {x, y, z}): " + str(self.hits)
+      " Number of hits: " + str(len(self.hits())) + "\n" + \
+      " Hits (#id {x, y, z}): " + str(self.hits())
 
+  def hits(self):
+    return self.__global_hits[self.hit_start_index : self.hit_end_index]
