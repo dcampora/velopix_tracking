@@ -213,9 +213,9 @@ class graph_dfs(object):
     defined in the class definition.
     '''
     print("Invoking graph dfs with\n max slopes: %s\n max tolerance: %s\n\
- max scatter: %s\n minimum root weight: %s\n weight assignment iterations: %s\n" % \
- (self.__max_slopes, self.__max_tolerance, self.__max_scatter, self.__minimum_root_weight, \
-  self.__weight_assignment_iterations))
+ max scatter: %s\n weight assignment iterations: %s\n minimum root weight: %s\n" % \
+ (self.__max_slopes, self.__max_tolerance, self.__max_scatter, self.__weight_assignment_iterations, \
+  self.__minimum_root_weight))
 
     # 0. Preorder all hits in each sensor by x,
     #    and update their hit_number.
