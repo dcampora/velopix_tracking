@@ -40,7 +40,7 @@ class graph_dfs(object):
   '''
 
   def __init__(self, max_slopes=(0.7, 0.7), max_tolerance=(0.4, 0.4), max_scatter=0.4, \
-    minimum_root_weight=1, weight_assignment_iterations=2, allowed_missing_sensor_hits=1, \
+    minimum_root_weight=1, weight_assignment_iterations=2, allowed_skip_sensors=1, \
     allow_cross_track=True, clone_ghost_killing=True):
     self.__max_slopes = max_slopes
     self.__max_tolerance = max_tolerance
@@ -48,7 +48,7 @@ class graph_dfs(object):
     self.__minimum_root_weight = minimum_root_weight
     self.__weight_assignment_iterations = weight_assignment_iterations
     self.__allow_cross_track = allow_cross_track
-    self.__allowed_missing_sensor_hits = allowed_missing_sensor_hits
+    self.__allowed_skip_sensors = allowed_skip_sensors
     self.__clone_ghost_killing = clone_ghost_killing
 
   def are_compatible_in_x(self, hit_0, hit_1):
@@ -138,7 +138,7 @@ class graph_dfs(object):
       substraction_starting_sensor = 1
     for s0, starting_sensor_index in zip(reversed(event.sensors[2:]), reversed(range(0, len(event.sensors) - substraction_starting_sensor))):
       for h0 in s0.hits():
-        for missing_sensors in range(0, self.__allowed_missing_sensor_hits + 1):
+        for missing_sensors in range(0, self.__allowed_skip_sensors + 1):
           sensor_index = starting_sensor_index - missing_sensors * 2
           if self.__allow_cross_track:
             sensor_index = starting_sensor_index - missing_sensors
@@ -251,10 +251,10 @@ class graph_dfs(object):
     '''
     print("Invoking graph dfs with\n max slopes: %s\n max tolerance: %s\n\
  max scatter: %s\n weight assignment iterations: %s\n minimum root weight: %s\n\
- allow cross track: %s\n allowed missing sensor hits: %s (its behaviour depends on allow cross track)\n\
+ allow cross track: %s\n allowed skip sensors: %s (its behaviour depends on allow cross track)\n\
  clone ghost killing: %s\n\n" % \
  (self.__max_slopes, self.__max_tolerance, self.__max_scatter, self.__weight_assignment_iterations, \
-  self.__minimum_root_weight, self.__allow_cross_track, self.__allowed_missing_sensor_hits, \
+  self.__minimum_root_weight, self.__allow_cross_track, self.__allowed_skip_sensors, \
   self.__clone_ghost_killing))
 
     # 0. Preorder all hits in each sensor by x,
