@@ -15,6 +15,9 @@ json_data = json.loads(f.read())
 event = em.event(json_data)
 f.close()
 
+for s_number in range(0, event.number_of_sensors):
+  event.sensors[s_number].z = event.sensors[s_number].hits()[0].z
+
 # Solve with the classic method
 classical = classical_solver()
 solutions["classic"] = classical.solve(event)
@@ -23,8 +26,9 @@ solutions["classic"] = classical.solve(event)
 dfs = graph_dfs(allowed_missing_sensor_hits=0)
 solutions["dfs"] = dfs.solve(event)
 
-# Validate the solutions
-for k, v in iter(sorted(solutions.items())):
-  print("%s method validation" % (k))
-  vl.validate_print([json_data], [v])
-  print()
+from visual.base import print_event_2d
+print_event_2d(event, solutions["classic"], filename="classic_solution_xz.png")
+print_event_2d(event, solutions["classic"], y=1, filename="classic_solution_yz.png")
+
+print_event_2d(event, solutions["dfs"], filename="dfs_solution_xz.png", track_color=4)
+print_event_2d(event, solutions["dfs"], y=1, filename="dfs_solution_yz.png", track_color=4)
