@@ -61,7 +61,7 @@ class graph_dfs(object):
     to the configured max_slope in y.
     '''
     hit_distance = abs(hit_1[2] - hit_0[2])
-    dxmax = self.__max_slopes[1] * hit_distance
+    dymax = self.__max_slopes[1] * hit_distance
     return abs(hit_1[1] - hit_0[1]) < dymax
 
   def are_compatible(self, hit_0, hit_1):
@@ -171,8 +171,9 @@ class graph_dfs(object):
     for h0_number in range(0, event.number_of_hits):
       for sensor_number, sensor_candidates in iter(candidates[h0_number].items()):
         for h1_number in range(sensor_candidates[0], sensor_candidates[1]):
-          segments.append(segment(event.hits[h0_number], event.hits[h1_number], len(segments)))
-          outer_hit_segment_list[h1_number].append(len(segments) - 1)
+          if self.are_compatible_in_y(event.hits[h0_number], event.hits[h1_number]):
+            segments.append(segment(event.hits[h0_number], event.hits[h1_number], len(segments)))
+            outer_hit_segment_list[h1_number].append(len(segments) - 1)
 
     compatible_segments = [[] for _ in segments]
     for seg1 in segments:
