@@ -70,7 +70,7 @@ def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.p
 
   plt.tick_params(axis='both', which='major', labelsize=4*scale)
   plt.xlabel(ntox[x], fontdict={'fontsize': 4*scale})
-  plt.ylabel(ntox[y], fontdict={'fontsize': 4*scale})
+  plt.ylabel(ntox[y], fontdict={'fontsize': 4*scale}, rotation='horizontal')
 
   plt.savefig(filename, bbox_inches='tight', pad_inches=0.2)
   plt.close()

@@ -23,7 +23,7 @@ classical = classical_solver()
 solutions["classic"] = classical.solve(event)
 
 # Solve with the DFS method
-dfs = graph_dfs(allowed_missing_sensor_hits=0)
+dfs = graph_dfs()
 solutions["dfs"] = dfs.solve(event)
 
 from visual.base import print_event_2d

@@ -35,11 +35,13 @@ class graph_dfs(object):
   3. Assign weights and get roots.
 
   4. Depth first search.
+
+  5. Clone and ghost killing.
   '''
 
   def __init__(self, max_slopes=(0.7, 0.7), max_tolerance=(0.4, 0.4), max_scatter=0.4, \
-    minimum_root_weight=1, weight_assignment_iterations=2, allowed_missing_sensor_hits=2, \
-    allow_cross_track=True):
+    minimum_root_weight=1, weight_assignment_iterations=2, allowed_missing_sensor_hits=1, \
+    allow_cross_track=True, clone_ghost_killing=True):
     self.__max_slopes = max_slopes
     self.__max_tolerance = max_tolerance
     self.__max_scatter = max_scatter
@@ -47,6 +49,7 @@ class graph_dfs(object):
     self.__weight_assignment_iterations = weight_assignment_iterations
     self.__allow_cross_track = allow_cross_track
     self.__allowed_missing_sensor_hits = allowed_missing_sensor_hits
+    self.__clone_ghost_killing = clone_ghost_killing
 
   def are_compatible_in_x(self, hit_0, hit_1):
     '''Checks if two hits are compatible according
@@ -130,7 +133,10 @@ class graph_dfs(object):
     contents: {sensor_index: [candidate start, candidate end], ...}
     '''
     candidates = [{} for i in range(0, event.number_of_hits)]
-    for s0, starting_sensor_index in zip(reversed(event.sensors[2:]), reversed(range(0, len(event.sensors) - 2))):
+    substraction_starting_sensor = 2
+    if self.__allow_cross_track:
+      substraction_starting_sensor = 1
+    for s0, starting_sensor_index in zip(reversed(event.sensors[2:]), reversed(range(0, len(event.sensors) - substraction_starting_sensor))):
       for h0 in s0.hits():
         for missing_sensors in range(0, self.__allowed_missing_sensor_hits + 1):
           sensor_index = starting_sensor_index - missing_sensors * 2
@@ -218,21 +224,38 @@ class graph_dfs(object):
       for segid in compatible_segments[segment.segment_number]:
         return [[segment.h1] + dfs_segments for dfs_segments in self.dfs(segments[segid], segments, compatible_segments)]
 
+  def prune_short_tracks(self, tracks):
+    '''Kills clones and weak tracks with
+    three hits and a shared hit.
+    '''
+    used_hits = []
+    for t in tracks:
+      if len(t.hits) > 3:
+        for h in t.hits:
+          used_hits.append(h.hit_number)
+    
+    return [t for t in tracks if \
+      len(t.hits) > 3 or \
+      all(h.hit_number not in used_hits for h in t.hits)
+    ]
+
   def print_compatible_segments(self, segments, compatible_segments, populated_compatible_segments):
     '''Prints all compatible segments.'''
     for seg0_index in populated_compatible_segments:
       seg0 = segments[seg0_index]
       print("%s\nis compatible with segments \n%s\n" % (seg0, [segments[seg_index] for seg_index in compatible_segments[seg0_index]]))
-      
+
   def solve(self, event):
     '''Solves the event according to the strategy
     defined in the class definition.
     '''
     print("Invoking graph dfs with\n max slopes: %s\n max tolerance: %s\n\
  max scatter: %s\n weight assignment iterations: %s\n minimum root weight: %s\n\
- allowed missing sensor hits: %s\n allow cross track: %s (will only take effect if allowed missing sensor hits > 0)\n\n" % \
+ allow cross track: %s\n allowed missing sensor hits: %s (its behaviour depends on allow cross track)\n\
+ clone ghost killing: %s\n\n" % \
  (self.__max_slopes, self.__max_tolerance, self.__max_scatter, self.__weight_assignment_iterations, \
-  self.__minimum_root_weight, self.__allowed_missing_sensor_hits, self.__allow_cross_track))
+  self.__minimum_root_weight, self.__allow_cross_track, self.__allowed_missing_sensor_hits, \
+  self.__clone_ghost_killing))
 
     # 0. Preorder all hits in each sensor by x,
     #    and update their hit_number.
@@ -266,5 +289,10 @@ class graph_dfs(object):
     for segment_id in root_segments:
       root_segment = segments[segment_id]
       tracks += [track([root_segment.h0] + dfs_segments) for dfs_segments in self.dfs(root_segment, segments, compatible_segments)]
+
+    # 5. Clone and ghost killing
+    # Note: For now, just short track killing
+    if self.__clone_ghost_killing:
+      tracks = self.prune_short_tracks(tracks)
 
     return tracks
