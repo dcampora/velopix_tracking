@@ -38,12 +38,15 @@ class graph_dfs(object):
   '''
 
   def __init__(self, max_slopes=(0.7, 0.7), max_tolerance=(0.4, 0.4), max_scatter=0.4, \
-    minimum_root_weight=1, weight_assignment_iterations=4):
+    minimum_root_weight=1, weight_assignment_iterations=2, allowed_missing_sensor_hits=2, \
+    allow_cross_track=True):
     self.__max_slopes = max_slopes
     self.__max_tolerance = max_tolerance
     self.__max_scatter = max_scatter
     self.__minimum_root_weight = minimum_root_weight
     self.__weight_assignment_iterations = weight_assignment_iterations
+    self.__allow_cross_track = allow_cross_track
+    self.__allowed_missing_sensor_hits = allowed_missing_sensor_hits
 
   def are_compatible_in_x(self, hit_0, hit_1):
     '''Checks if two hits are compatible according
@@ -124,20 +127,31 @@ class graph_dfs(object):
   def fill_candidates(self, event):
     '''Fill candidates
     index: hit index
-    contents: [candidate start, candidate end]
+    contents: {sensor_index: [candidate start, candidate end], ...}
     '''
-    candidates = [[-1, -1] for i in range(0, event.number_of_hits)]
-    for s0, s1 in zip(reversed(event.sensors[2:]), reversed(event.sensors[0:-2])):
+    candidates = [{} for i in range(0, event.number_of_hits)]
+    for s0, starting_sensor_index in zip(reversed(event.sensors[2:]), reversed(range(0, len(event.sensors) - 2))):
       for h0 in s0.hits():
-        begin_found = False
-        for h1 in s1.hits():
-          if not begin_found and self.are_compatible_in_x(h0, h1):
-            candidates[h0.hit_number][0] = h1.hit_number
-            candidates[h0.hit_number][1] = h1.hit_number + 1
-            begin_found = True
-          elif begin_found:
-            candidates[h0.hit_number][1] = h1.hit_number + 1
-            break
+        for missing_sensors in range(0, self.__allowed_missing_sensor_hits + 1):
+          sensor_index = starting_sensor_index - missing_sensors * 2
+          if self.__allow_cross_track:
+            sensor_index = starting_sensor_index - missing_sensors
+          if sensor_index >= 0:
+            s1 = event.sensors[sensor_index]
+            begin_found = False
+            end_found = False
+            candidates[h0.hit_number][sensor_index] = [-1, -1]
+            for h1 in s1.hits():
+              if not begin_found and self.are_compatible_in_x(h0, h1):
+                candidates[h0.hit_number][sensor_index][0] = h1.hit_number
+                candidates[h0.hit_number][sensor_index][1] = h1.hit_number + 1
+                begin_found = True
+              elif begin_found and not end_found and not self.are_compatible_in_x(h0, h1):
+                candidates[h0.hit_number][sensor_index][1] = h1.hit_number
+                end_found = True
+                break
+            if begin_found and not end_found:
+              candidates[h0.hit_number][sensor_index][1] = s1.hits()[-1].hit_number+1
     return candidates
 
   def populate_segments(self, event, candidates):
@@ -154,10 +168,11 @@ class graph_dfs(object):
     '''
     segments = []
     outer_hit_segment_list = [[] for _ in event.hits]
-    for h0_number in range(0, len(candidates)):
-      for h1_number in range(candidates[h0_number][0], candidates[h0_number][1]):
-        segments.append(segment(event.hits[h0_number], event.hits[h1_number], len(segments)))
-        outer_hit_segment_list[h1_number].append(len(segments) - 1)
+    for h0_number in range(0, event.number_of_hits):
+      for sensor_number, sensor_candidates in iter(candidates[h0_number].items()):
+        for h1_number in range(sensor_candidates[0], sensor_candidates[1]):
+          segments.append(segment(event.hits[h0_number], event.hits[h1_number], len(segments)))
+          outer_hit_segment_list[h1_number].append(len(segments) - 1)
 
     compatible_segments = [[] for _ in segments]
     for seg1 in segments:
@@ -213,9 +228,10 @@ class graph_dfs(object):
     defined in the class definition.
     '''
     print("Invoking graph dfs with\n max slopes: %s\n max tolerance: %s\n\
- max scatter: %s\n weight assignment iterations: %s\n minimum root weight: %s\n" % \
+ max scatter: %s\n weight assignment iterations: %s\n minimum root weight: %s\n\
+ allow cross track: %s\n allowed missing sensor hits: %s\n" % \
  (self.__max_slopes, self.__max_tolerance, self.__max_scatter, self.__weight_assignment_iterations, \
-  self.__minimum_root_weight))
+  self.__minimum_root_weight, self.__allow_cross_track, self.__allowed_missing_sensor_hits))
 
     # 0. Preorder all hits in each sensor by x,
     #    and update their hit_number.

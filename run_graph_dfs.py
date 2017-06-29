@@ -15,16 +15,16 @@ json_data = json.loads(f.read())
 event = em.event(json_data)
 f.close()
 
-# Invoke some algorithm to solve it
-dfs = graph_dfs()
-solutions["dfs"] = dfs.solve(event)
-
 # Get all tracks by using the classic method and print them
 classical = classical_solver()
 solutions["classic"] = classical.solve(event)
 
+# Invoke some algorithm to solve it
+dfs = graph_dfs(allowed_missing_sensor_hits=0)
+solutions["dfs"] = dfs.solve(event)
+
 # Validate the solutions
-for k, v in iter(solutions.items()):
+for k, v in iter(sorted(solutions.items())):
   print("%s method validation" % (k))
   vl.validate_print([json_data], [v])
   print()
