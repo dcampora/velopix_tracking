@@ -146,7 +146,7 @@ class graph_dfs(object):
                 candidates[h0.hit_number][sensor_index][0] = h1.hit_number
                 candidates[h0.hit_number][sensor_index][1] = h1.hit_number + 1
                 begin_found = True
-              elif begin_found and not end_found and not self.are_compatible_in_x(h0, h1):
+              elif begin_found and not self.are_compatible_in_x(h0, h1):
                 candidates[h0.hit_number][sensor_index][1] = h1.hit_number
                 end_found = True
                 break
@@ -229,9 +229,9 @@ class graph_dfs(object):
     '''
     print("Invoking graph dfs with\n max slopes: %s\n max tolerance: %s\n\
  max scatter: %s\n weight assignment iterations: %s\n minimum root weight: %s\n\
- allow cross track: %s\n allowed missing sensor hits: %s\n" % \
+ allowed missing sensor hits: %s\n allow cross track: %s (will only take effect if allowed missing sensor hits > 0)\n\n" % \
  (self.__max_slopes, self.__max_tolerance, self.__max_scatter, self.__weight_assignment_iterations, \
-  self.__minimum_root_weight, self.__allow_cross_track, self.__allowed_missing_sensor_hits))
+  self.__minimum_root_weight, self.__allowed_missing_sensor_hits, self.__allow_cross_track))
 
     # 0. Preorder all hits in each sensor by x,
     #    and update their hit_number.
