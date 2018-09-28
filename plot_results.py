@@ -27,8 +27,10 @@ dfs = graph_dfs()
 solutions["dfs"] = dfs.solve(event)
 
 from visual.base import print_event_2d
-print_event_2d(event, solutions["classic"], filename="classic_solution_xz.png")
-print_event_2d(event, solutions["classic"], y=1, filename="classic_solution_yz.png")
+# print_event_2d(event, solutions["classic"], filename="classic_solution_xz")
+# print_event_2d(event, solutions["classic"], y=1, filename="classic_solution_yz")
 
-print_event_2d(event, solutions["dfs"], filename="dfs_solution_xz.png", track_color=4)
-print_event_2d(event, solutions["dfs"], y=1, filename="dfs_solution_yz.png", track_color=4)
+# print_event_2d(event, solutions["dfs"], filename="dfs_solution_xz", track_color=4)
+# print_event_2d(event, solutions["dfs"], y=1, filename="dfs_solution_yz", track_color=4)
+
+print_event_2d(event, solutions["classic"], filename="sensors", track_color=2, print_tracks=False, print_odd=False)
