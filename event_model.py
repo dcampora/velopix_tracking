@@ -72,8 +72,8 @@ class hit(object):
     else: return self.z
 
   def __repr__(self):
-    return "#" + str(self.hit_number) + " {" + str(self.x) + ", " + \
-           str(self.y) + ", " + str(self.z) + "}"
+    return "#" + str(self.hit_number) + " id " + str(self.id) + " {" + str(self.x) + ", " + \
+         str(self.y) + ", " + str(self.z) + "}"
 
   def __eq__(self, other):
       return self.id == other.id

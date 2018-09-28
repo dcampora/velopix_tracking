@@ -55,6 +55,7 @@ class graph_dfs(object):
     '''Checks if two hits are compatible according
     to the configured max_slope in x.
     '''
+    #  or seg0.h1.id==52612844
     hit_distance = abs(hit_1[2] - hit_0[2])
     dxmax = self.__max_slopes[0] * hit_distance
     return abs(hit_1[0] - hit_0[0]) < dxmax
@@ -94,16 +95,22 @@ class graph_dfs(object):
     dx = abs(x_prediction - hit_2.x)
     tolx_condition = dx < self.__max_tolerance[0]
 
+    if not tolx_condition:
+      return False
+
     y_prediction = hit_0.y + ty * dz
     dy = abs(y_prediction - hit_2.y)
     toly_condition = dy < self.__max_tolerance[1]
+
+    if not toly_condition:
+      return False
 
     scatterNum = (dx * dx) + (dy * dy)
     scatterDenom = 1.0 / (hit_2.z - hit_1.z)
     scatter = scatterNum * scatterDenom * scatterDenom
 
     scatter_condition = scatter < self.__max_scatter
-    return tolx_condition and toly_condition and scatter_condition
+    return scatter_condition
 
   def are_segments_compatible(self, seg0, seg1):
     '''Checks whether two segments are compatible, applying
@@ -116,6 +123,9 @@ class graph_dfs(object):
       print("Warning: seg0 h1 and seg1 h0 are not the same")
       print(seg0.h1)
       print(seg1.h0)
+    # # 48417273 {5.345726, 2.372341, 649.468994}, #-1 id 50515187 {5.695744, 2.489017, 699.468994}, #-1 id 52612844
+    if seg0.h0.id==52612844 and seg0.h1.id==50515187 and seg1.h1.id==48417273:
+      print("Comparing ", seg0.h0, seg0.h1, seg1.h1, self.check_tolerance(seg0.h0, seg0.h1, seg1.h1))
     return self.check_tolerance(seg0.h0, seg0.h1, seg1.h1)
 
   def order_hits(self, event):
@@ -133,15 +143,15 @@ class graph_dfs(object):
     contents: {sensor_index: [candidate start, candidate end], ...}
     '''
     candidates = [{} for i in range(0, event.number_of_hits)]
-    substraction_starting_sensor = 2
+    cross_sensor_factor = 2
     if self.__allow_cross_track:
-      substraction_starting_sensor = 1
-    for s0, starting_sensor_index in zip(reversed(event.sensors[2:]), reversed(range(0, len(event.sensors) - substraction_starting_sensor))):
+      cross_sensor_factor = 1
+    for sensor_index in reversed(range(2, len(event.sensors))):
+      s0 = event.sensors[sensor_index]
+      starting_sensor_index = sensor_index - 1*(cross_sensor_factor)
       for h0 in s0.hits():
         for missing_sensors in range(0, self.__allowed_skip_sensors + 1):
-          sensor_index = starting_sensor_index - missing_sensors * 2
-          if self.__allow_cross_track:
-            sensor_index = starting_sensor_index - missing_sensors
+          sensor_index = starting_sensor_index - missing_sensors * cross_sensor_factor
           if sensor_index >= 0:
             s1 = event.sensors[sensor_index]
             begin_found = False
@@ -201,7 +211,9 @@ class graph_dfs(object):
     '''
     for _ in range(0, self.__weight_assignment_iterations):
       for seg0_index in populated_compatible_segments:
-        segments[seg0_index].weight = max([segments[seg_number].weight for seg_number in compatible_segments[seg0_index]]) + 1
+        segments[seg0_index].weight = max([segments[seg_number].weight \
+                 for seg_number in compatible_segments[seg0_index]]) + 1
+      # Small bug: race condition in weight association
 
     # Find out root segments
     # Mark all as root
@@ -222,7 +234,8 @@ class graph_dfs(object):
       return [[segment.h1]]
     else:
       for segid in compatible_segments[segment.segment_number]:
-        return [[segment.h1] + dfs_segments for dfs_segments in self.dfs(segments[segid], segments, compatible_segments)]
+        return [[segment.h1] + dfs_segments for dfs_segments in \
+                 self.dfs(segments[segid], segments, compatible_segments)]
 
   def prune_short_tracks(self, tracks):
     '''Kills clones and weak tracks with
@@ -273,6 +286,7 @@ class graph_dfs(object):
     (segments, outer_hit_segment_list, compatible_segments, populated_compatible_segments) = \
       self.populate_segments(event_copy, candidates)
 
+    # print(sum([len(a) for a in compatible_segments]), "compatible segments")
     # self.print_compatible_segments(segments, compatible_segments, populated_compatible_segments)
 
     # 3. Assign weights and get roots
@@ -288,7 +302,20 @@ class graph_dfs(object):
     tracks = []
     for segment_id in root_segments:
       root_segment = segments[segment_id]
-      tracks += [track([root_segment.h0] + dfs_segments) for dfs_segments in self.dfs(root_segment, segments, compatible_segments)]
+
+      # Keep only the longest one found
+      dfs_segments = self.dfs(root_segment, segments, compatible_segments)
+
+
+      selected_dfs = sorted(dfs_segments)[0]
+
+      if len(dfs_segments) > 1:
+        print([[root_segment.h0] + a for a in dfs_segments])
+        print(selected_dfs)
+        print()
+
+      tracks += [track([root_segment.h0] + selected_dfs)]
+      # tracks += [track([root_segment.h0] + ds) for ds in dfs_segments]
 
     # 5. Clone and ghost killing
     # Note: For now, just short track killing

@@ -6,6 +6,7 @@ from matplotlib.ticker import FormatStrFormatter
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 # Beautiful colors
 default_color = "#478DCB"
@@ -29,21 +30,30 @@ plotscale = 1.5
 
 ntox = {0:'X', 1:'Y', 2:'Z'}
 
-def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.png"):  
+def hit_phi(hit):
+  if (hit.sensor_number % 2) == 0:
+    phi = math.atan2(hit.y, hit.x)
+    less_than_zero = phi < 0
+    return phi + less_than_zero * 2 * math.pi
+  return math.atan2(hit.y, hit.x)
+
+
+def print_event_2d_phi(event, tracks=[], track_color=0, filename="event_phi"):  
   fig = plt.figure(figsize=(16*plotscale, 9*plotscale))
   ax = plt.axes()
 
   # Limits of the sensors
-  limits = [(-20, 50), (-50, 20)]
+  limits = [(0, 2 * math.pi), (-math.pi, math.pi)]
   shift = 0.4
-  for s in event.sensors[::2]:
-    plt.plot(
-      [s.z+shift, s.z+shift],
-      [limits[0][0], limits[0][1]],
-      color=grey_color,
-      alpha=0.4,
-      linewidth=4
-    )
+  # for s in event.sensors[::2]:
+  #   plt.plot(
+  #     [s.z+shift, s.z+shift],
+  #     [limits[0][0], limits[0][1]],
+  #     color=grey_color,
+  #     alpha=0.4,
+  #     linewidth=4
+  #   )
+
   for s in event.sensors[1::2]:
     plt.plot(
       [s.z+shift, s.z+shift],
@@ -53,24 +63,27 @@ def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.p
       linewidth=4
     )
 
+  # Print X versus Phi
   plt.scatter(
-    [h[x] for h in event.hits],
-    [h[y] for h in event.hits],
+    [h[2] for h in event.hits if h.sensor_number % 2 == 1],
+    [hit_phi(h) for h in event.hits if h.sensor_number % 2 == 1],
     color=default_color,
     s=2*scale
   )
 
-  for t in [t for t in tracks if len(t.hits)==3]:
-    plt.plot(
-      [h[x] for h in t.hits],
-      [h[y] for h in t.hits],
-      color=colors[track_color],
-      linewidth=1
-    )
+  # for t in [t for t in tracks if len(t.hits)==3]:
+  #   plt.plot(
+  #     [h[2] for h in t.hits],
+  #     [hit_phi(h) for h in t.hits],
+  #     color=colors[track_color],
+  #     linewidth=1
+  #   )
 
   plt.tick_params(axis='both', which='major', labelsize=4*scale)
-  plt.xlabel(ntox[x], fontdict={'fontsize': 4*scale})
-  plt.ylabel(ntox[y], fontdict={'fontsize': 4*scale}, rotation='horizontal')
+  plt.xlabel("Z", fontdict={'fontsize': 4*scale})
+  plt.ylabel("φ", fontdict={'fontsize': 4*scale}, rotation='horizontal')
 
-  plt.savefig(filename, bbox_inches='tight', pad_inches=0.2)
+  plt.savefig(filename + ".png", bbox_inches='tight', pad_inches=0.2)
+  plt.savefig(filename + ".pdf", transparent=True, bbox_inches='tight', pad_inches=0.2)
+
   plt.close()

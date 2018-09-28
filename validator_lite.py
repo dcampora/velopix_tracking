@@ -75,6 +75,7 @@ class MCParticle(object):
         s += "\tstrangedown:\t%r"%(self.strangedown)
         s += "\tfromb:\t%r"%(self.fromb)
         s += "\tfromd:\t%r"%(self.fromd)
+        s += "\nhits:"+str(self.velohits)
         return s
 
     def __repr__(self):
@@ -163,7 +164,7 @@ class Efficiency(object):
 
 def update_efficiencies(eff, event, tracks, weights, label, cond):
     #t2p_filtered = {t:(w,p) for t,(w,p) in t2p.iteritems() if (p is None) or cond(p)}
-    particles_filtered = {p for  p in event.particles if cond(p)}
+    particles_filtered = {p for p in event.particles if cond(p)}
     pidx_filtered = [-1]
     if len(particles_filtered) > 0:
         pidx_filtered, particles_filtered = zip(*[(ip,p) for ip, p in enumerate(event.particles) if cond(p)])
@@ -175,6 +176,16 @@ def update_efficiencies(eff, event, tracks, weights, label, cond):
         eff = Efficiency(t2p, p2t, particles_filtered, event, label)
     else:
         eff.add_event(t2p, p2t, particles_filtered, event)
+
+    if label=="long":
+        for p in particles_filtered:
+            reco, t = p2t[p]
+            if reco<1.0:
+                print("Not perfectly reconstructed:", reco)
+                print(p)
+                print("Best track:", t)
+                print()
+
     return eff
 
 def comp_weights(tracks, event):
