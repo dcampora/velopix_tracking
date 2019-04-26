@@ -15,8 +15,8 @@ json_data = json.loads(f.read())
 event = em.event(json_data)
 f.close()
 
-for s_number in range(0, event.number_of_sensors):
-  event.sensors[s_number].z = event.sensors[s_number].hits()[0].z
+for s_number in range(0, event.number_of_modules):
+  event.modules[s_number].z = event.modules[s_number].hits()[0].z
 
 # Solve with the classic method
 classical = classical_solver()
@@ -25,7 +25,7 @@ solutions["classic"] = classical.solve(event)
 # Solve with the DFS method
 dfs = graph_dfs(
   allow_cross_track=False,
-  allowed_skip_sensors=1,
+  allowed_skip_modules=1,
   max_slopes=(0.7, 0.7),
   max_tolerance=(0.3, 0.3)
 )

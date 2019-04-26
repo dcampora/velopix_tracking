@@ -15,9 +15,9 @@ json_data = json.loads(f.read())
 event = em.event(json_data)
 f.close()
 
-event.sensors = sorted(event.sensors, key=lambda s: s.z)
-for i in range(len(event.sensors)):
-  event.sensors[i].sensor_number = i
+event.modules = sorted(event.modules, key=lambda s: s.z)
+for i in range(len(event.modules)):
+  event.modules[i].module_number = i
 
 # Solve with the classic method
 # classical = classical_solver()
@@ -29,7 +29,7 @@ for i in range(len(event.sensors)):
 
 dfs_no = graph_dfs(
   allow_cross_track=False,
-  allowed_skip_sensors=1,
+  allowed_skip_modules=1,
   # max_tolerance=(0.3, 0.3)
   max_slopes=(0.7, 0.7),
   max_tolerance=(0.3, 0.3)
@@ -38,7 +38,7 @@ solutions["dfs_no_allowed"] = dfs_no.solve(event)
 
 # dfs_no = graph_dfs(
 #   allow_cross_track=False,
-#   allowed_skip_sensors=0
+#   allowed_skip_modules=0
 # )
 # solutions["dfs_no_skip"] = dfs_no.solve(event)
 

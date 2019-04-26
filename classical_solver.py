@@ -3,7 +3,7 @@ from event_model import *
 class classical_solver:
   '''The classical solver.
 
-  It sequentially traverses all sensor modules, marking
+  It sequentially traverses all module modules, marking
   hits as used in the way.
   '''
   def __init__(self, max_slopes=(0.7, 0.7), max_tolerance=(0.4, 0.4), max_scatter=0.4):
@@ -52,35 +52,35 @@ class classical_solver:
     tracks      = []
     used_hits   = []
 
-    # Start from the last sensor, create seeds and forward them
-    for s0, s1, starting_sensor_index in zip(reversed(event.sensors[3:]), reversed(event.sensors[1:-2]), reversed(range(0, len(event.sensors) - 3))):
+    # Start from the last module, create seeds and forward them
+    for s0, s1, starting_module_index in zip(reversed(event.modules[3:]), reversed(event.modules[1:-2]), reversed(range(0, len(event.modules) - 3))):
       for h0 in [h0 for h0 in s0 if h0.id not in used_hits]:
         for h1 in [h1 for h1 in s1 if h1.id not in used_hits]:
           
           if self.are_compatible(h0, h1):
             # We have a seed, let's attempt to form a track
-            # with a hit from the following three sensors
+            # with a hit from the following three modules
             h2_found = False
             strong_track_found = False
 
-            sensor_index_iter = -1
-            for sensor_index in [sid for sid in reversed(range(starting_sensor_index-2, starting_sensor_index+1)) if sid >= 0]:
-              for h2 in event.sensors[sensor_index]:
+            module_index_iter = -1
+            for module_index in [sid for sid in reversed(range(starting_module_index-2, starting_module_index+1)) if sid >= 0]:
+              for h2 in event.modules[module_index]:
                 if self.check_tolerance(h0, h1, h2):
                   forming_track = track([h0, h1, h2])
                   h2_found = True
-                  sensor_index_iter = sensor_index
+                  module_index_iter = module_index
                   break
               if h2_found:
                 break
 
-            # Continue with following sensors - "forward" track
+            # Continue with following modules - "forward" track
             missed_stations = 0
             if h2_found:
-              while (sensor_index_iter >= 0 and missed_stations < 3):
-                sensor_index_iter -= 1
+              while (module_index_iter >= 0 and missed_stations < 3):
+                module_index_iter -= 1
                 missed_stations   += 1
-                for h2 in event.sensors[sensor_index_iter]:
+                for h2 in event.modules[module_index_iter]:
                   if self.check_tolerance(forming_track.hits[-2], forming_track.hits[-1], h2):
                     forming_track.add_hit(h2)
                     missed_stations = 0

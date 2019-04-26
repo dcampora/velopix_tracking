@@ -8,11 +8,11 @@ import itertools
 
 class validator_event(object):
     """A SOA datastructure for events"""
-    def __init__(self, sensor_Zs, sensor_hitStarts, sensor_hitNums,
+    def __init__(self, module_Zs, module_hitStarts, module_hitNums,
         hit_IDs, hit_Xs, hit_Ys, hit_Zs, hits, mcp_to_hits=None):
-        self.sensor_Zs = sensor_Zs
-        self.sensor_hitStarts = sensor_hitStarts
-        self.sensor_hitNums = sensor_hitNums
+        self.module_Zs = module_Zs
+        self.module_hitStarts = module_hitStarts
+        self.module_hitNums = module_hitNums
         self.hit_IDs = hit_IDs
         self.hit_Xs, self.hit_Ys, self.hit_Zs = hit_Xs, hit_Ys, hit_Zs
         self.hits = hits
@@ -99,8 +99,8 @@ def parse_json_data(json_data):
             mcp.islong, mcp.isdown, mcp.isvelo, mcp.isut = p[d["mcp_islong"]], p[d["mcp_isdown"]], p[d["mcp_isvelo"]], p[d["mcp_isut"]]
             mcp.strangelong, mcp.strangedown, mcp.fromb, mcp.fromd = p[d["mcp_strangelong"]], p[d["mcp_strangedown"]], p[d["mcp_fromb"]], p[d["mcp_fromd"]]
             mcp_to_hits[mcp] = trackhits
-    return validator_event (json_event["sensor_module_z"], json_event["sensor_hits_starting_index"],
-        json_event["sensor_number_of_hits"], json_event["hit_id"], json_event["hit_x"],
+    return validator_event (json_event["module_module_z"], json_event["module_hits_starting_index"],
+        json_event["module_number_of_hits"], json_event["hit_id"], json_event["hit_x"],
         json_event["hit_y"], json_event["hit_z"], hits, mcp_to_hits)
 
 class Efficiency(object):

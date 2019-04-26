@@ -1,10 +1,12 @@
+import sys
+sys.path.append("../")
 from classical_solver import classical_solver
 import event_model as em
 import validator_lite as vl
 import json
 
 # Get an event
-f = open("velojson/0.json")
+f = open("../velojson/0.json")
 json_data = json.loads(f.read())
 event = em.event(json_data)
 f.close()
@@ -87,24 +89,30 @@ def check_compatible_triplets(m0, m1, m2):
             compatible_triplets.append((h0, h1, h2))
   return compatible_triplets
 
-def generate_compatible_triplets(event, consider_missing_layers=True):
+def generate_compatible_triplets(event, seeding=False, consider_missing_layers=True):
   compatible_triplets = []
   for m0, m1 in zip(reversed(event.modules[4:]), reversed(event.modules[2:-2])):
-    # Verify m2 and m2 - 1
-    m2 = (m1.module_number - (m1.module_number % 2)) - 1
-    # Check compatible triplets
-    compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2])
-    compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2 - 1])
-    if m2 - 2 > 0 and consider_missing_layers:
-      compatible_triplets += check_compatible_triplets(m0, event.modules[m2], event.modules[m2 - 2])
-      compatible_triplets += check_compatible_triplets(m0, event.modules[m2 - 1], event.modules[m2 - 3])
-      compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2 - 2])
-      compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2 - 3])
-  
-  generate_hit_list(event)
+    if seeding:
+      # Only generate compatible triplets between m0, m1, and m2 = m1 - 2
+      compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m1.module_number - 2])
+    else:
+      # Verify m2 and m2 - 1
+      m2 = (m1.module_number - (m1.module_number % 2)) - 1
+      # Check compatible triplets
+      compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2])
+      compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2 - 1])
+      if m2 - 2 > 0 and consider_missing_layers:
+        compatible_triplets += check_compatible_triplets(m0, event.modules[m2], event.modules[m2 - 2])
+        compatible_triplets += check_compatible_triplets(m0, event.modules[m2 - 1], event.modules[m2 - 3])
+        compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2 - 2])
+        compatible_triplets += check_compatible_triplets(m0, m1, event.modules[m2 - 3])
 
-  print()
   for t in compatible_triplets:
     print_compatible_triplet_simplified(t)
 
-generate_compatible_triplets(event)
+print("Hit list:")
+generate_hit_list(event)
+print("\nCompatible triplets seeding:")
+generate_compatible_triplets(event, seeding=True)
+print("\nCompatible triplets forwarding:")
+generate_compatible_triplets(event, seeding=False, consider_missing_layers=True)

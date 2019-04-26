@@ -19,7 +19,7 @@ colors = ["#CF3D1E", "#F15623", "#F68B1F", "#FFC60B", "#DFCE21",
 scale = 4
 plotscale = 1.5
 
-# # Dashed line for sensors
+# # Dashed line for modules
 # plt.plot(
 #   [a for a in range(1, 256)],
 #   [a for a in range(1, 256)],
@@ -33,10 +33,10 @@ def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.p
   fig = plt.figure(figsize=(16*plotscale, 9*plotscale))
   ax = plt.axes()
 
-  # Limits of the sensors
+  # Limits of the modules
   limits = [(-20, 50), (-50, 20)]
   shift = 0.4
-  for s in event.sensors[::2]:
+  for s in event.modules[::2]:
     plt.plot(
       [s.z+shift, s.z+shift],
       [limits[0][0], limits[0][1]],
@@ -44,7 +44,7 @@ def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.p
       alpha=0.4,
       linewidth=4
     )
-  for s in event.sensors[1::2]:
+  for s in event.modules[1::2]:
     plt.plot(
       [s.z+shift, s.z+shift],
       [limits[1][0], limits[1][1]],
