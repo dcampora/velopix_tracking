@@ -89,7 +89,9 @@ def generate_compatible_triplets_forwarding_missing(event):
 json_data_all_events = []
 all_tracks = []
 
+print("Processing events", end="")
 for event_number in range(0, 20):
+  print(".", end="")
   # Get an event
   f = open("../velojson/" + str(event_number) + ".json")
   json_data = json.loads(f.read())
@@ -281,4 +283,5 @@ for event_number in range(0, 20):
   json_data_all_events.append(json_data)
   all_tracks.append(tracks)
 
+print("\nValidating solution")
 vl.validate_print(json_data_all_events, all_tracks)
