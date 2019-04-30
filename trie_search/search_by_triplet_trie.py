@@ -47,7 +47,7 @@ def check_best_triplets(m0, m1, m2):
           best_h2 = h2
           best_scatter = scatter
       if best_scatter < max_scatter:
-        best_triplets.append((h0, h1, best_h2))
+        best_triplets.append((h0, h1, best_h2, best_scatter))
   return best_triplets
 
 def generate_compatible_triplets(module_pairs):
@@ -58,10 +58,10 @@ def generate_compatible_triplets(module_pairs):
     m2 = m1.module_number - 1
     compatible_triplets += check_best_triplets(m0, m1, module_pairs[m2])
     # Iterate compatible_triplets and generate a trie from it
-    for h0, h1, h2 in compatible_triplets:
+    for h0, h1, h2, scatter in compatible_triplets:
       if h0 not in compatible_triplets_module.keys():
         compatible_triplets_module[h0] = {}
-      compatible_triplets_module[h0][h1] = h2
+      compatible_triplets_module[h0][h1] = (h2, scatter)
     compatible_triplets_trie[m0.module_number] = compatible_triplets_module
   return compatible_triplets_trie
 
@@ -127,7 +127,7 @@ for event_number in range(0, 1):
           t.missed_last_module = False
       elif h0 in compatible_triplets_in_module.keys() and \
            h1 in compatible_triplets_in_module[h0].keys():
-        h2 = compatible_triplets_in_module[h0][h1]
+        (h2, scatter) = compatible_triplets_in_module[h0][h1]
         # Append and flag hits
         found_h2 = True
         t.hits.append(h2)
@@ -152,12 +152,20 @@ for event_number in range(0, 1):
 
     # Seeding
     for h0 in compatible_triplets_in_module.keys():
+      best_h1 = hit(0, 0, 0, -1)
+      best_h2 = hit(0, 0, 0, -1)
+      best_scatter = max_scatter
       for h1 in compatible_triplets_in_module[h0].keys():
-        h2 = compatible_triplets_in_module[h0][h1]
+        (h2, scatter) = compatible_triplets_in_module[h0][h1]
         if h0 not in flagged_hits and \
            h1 not in flagged_hits and \
-           h2 not in flagged_hits:
-          forwarding_tracks.append(track([h0, h1, h2]))
+           h2 not in flagged_hits and \
+           scatter < best_scatter:
+          best_scatter = scatter
+          best_h1 = h1
+          best_h2 = h2
+      if best_scatter < max_scatter:
+        forwarding_tracks.append(track([h0, best_h1, best_h2]))
 
   # Add tracks in forwarding_tracks to either tracks or weak_tracks container
   for t in forwarding_tracks:
