@@ -29,6 +29,7 @@ class track(object):
   '''A track, essentially a list of hits.'''
   def __init__(self, hits):
     self.hits = hits
+    self.missed_modules = 0
 
   def add_hit(self, hit):
     self.hits.append(hit)
@@ -72,7 +73,7 @@ class hit(object):
     else: return self.z
 
   def __repr__(self):
-    return "#" + str(self.hit_number) + " id " + str(self.id) + " {" + str(self.x) + ", " + \
+    return "#" + str(self.hit_number) + " id " + str(self.id) + " module " + str(self.module_number) + " {" + str(self.x) + ", " + \
          str(self.y) + ", " + str(self.z) + "}"
 
   def __eq__(self, other):

@@ -177,14 +177,14 @@ def update_efficiencies(eff, event, tracks, weights, label, cond):
     else:
         eff.add_event(t2p, p2t, particles_filtered, event)
 
-    if label=="long":
-        for p in particles_filtered:
-            reco, t = p2t[p]
-            if reco<1.0:
-                print("Not perfectly reconstructed:", reco)
-                print(p)
-                print("Best track:", t)
-                print()
+    # if label=="long":
+    #     for p in particles_filtered:
+    #         reco, t = p2t[p]
+    #         if reco<1.0:
+    #             print("Not perfectly reconstructed:", reco)
+    #             print(p)
+    #             print("Best track:", t)
+    #             print()
 
     return eff
 
