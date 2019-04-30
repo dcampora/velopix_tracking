@@ -29,7 +29,8 @@ class track(object):
   '''A track, essentially a list of hits.'''
   def __init__(self, hits):
     self.hits = hits
-    self.missed_modules = 0
+    self.missed_last_module = False
+    self.missed_penultimate_module = False
 
   def add_hit(self, hit):
     self.hits.append(hit)
@@ -95,7 +96,7 @@ class module(object):
   the less the z.
   '''
   def __init__(self, module_number, z, start_hit, number_of_hits, hits):
-    self.module_number = module_number
+    self.module_number = int(module_number)
     self.z = z
     self.hit_start_index = start_hit
     self.hit_end_index = start_hit + number_of_hits
