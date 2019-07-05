@@ -9,6 +9,9 @@ json_data = json.loads(f.read())
 event = em.event(json_data)
 f.close()
 
+# classical_tracks = [em.track([h]) for h in event.hits]
+# classical_tracks = [em.track([event.hits[0]])]
+
 # Get all tracks by using the classical method and print them
 print("Invoking classical solver...")
 classical = classical_solver()
