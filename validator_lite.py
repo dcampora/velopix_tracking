@@ -190,13 +190,14 @@ def comp_weights(tracks, event):
     for i, j in itertools.product(range(len(tracks)), range(len(event.particles))):
         trackhits = tracks[i].hits
         nhits = len(trackhits)
-        particle = event.particles[j]
-        # try:
-        nhits_from_p = len([h for h in trackhits if event.hit_to_mcp[h].count(particle) > 0])
-        # except:
-        #     print(event.hit_to_mcp)
-        #     raise
-        w[i,j] = float(nhits_from_p)/nhits
+        if nhits >= 2:
+            particle = event.particles[j]
+            # try:
+            nhits_from_p = len([h for h in trackhits if event.hit_to_mcp[h].count(particle) > 0])
+            # except:
+            #     print(event.hit_to_mcp)
+            #     raise
+            w[i,j] = float(nhits_from_p)/nhits
     return w
 
 def hit_purity(tracks, particles, weights):
