@@ -73,7 +73,7 @@ for event_number in range(0, 1):
   print(".", end="")
   sys.stdout.flush()
   # Get an event
-  f = open("../velojson/" + str(event_number) + ".json")
+  f = open("velojson/" + str(event_number) + ".json")
   json_data = json.loads(f.read())
   ev = event(json_data)
   f.close()
@@ -185,5 +185,5 @@ for event_number in range(0, 1):
   json_data_all_events.append(json_data)
   all_tracks.append(tracks)
 
-print("\nValidating solution")
-vl.validate_print(json_data_all_events, all_tracks)
+#print("\nValidating solution")
+#vl.validate_print(json_data_all_events, all_tracks)

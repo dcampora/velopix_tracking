@@ -17,7 +17,7 @@ colors = ["#CF3D1E", "#F15623", "#F68B1F", "#FFC60B", "#DFCE21",
 
 # Some default parameters for the figure
 scale = 4
-plotscale = 1.5
+plotscale = 0.8
 
 # # Dashed line for modules
 # plt.plot(
@@ -29,22 +29,27 @@ plotscale = 1.5
 
 ntox = {0:'X', 1:'Y', 2:'Z'}
 
-def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.png"):  
-  fig = plt.figure(figsize=(16*plotscale, 9*plotscale))
+def print_event_2d(ev, tracks=[], x=2, y=0, track_color=0, filename="visual.png"):  
+  fig = plt.figure(figsize=(8*plotscale, 8*plotscale))
   ax = plt.axes()
+
+  min_module = 10 * 2
+  max_module = 15 * 2
 
   # Limits of the modules
   limits = [(-20, 50), (-50, 20)]
-  shift = 0.4
-  for s in event.modules[::2]:
-    plt.plot(
-      [s.z+shift, s.z+shift],
-      [limits[0][0], limits[0][1]],
-      color=grey_color,
-      alpha=0.4,
-      linewidth=4
-    )
-  for s in event.modules[1::2]:
+  shift = 1.0
+  for s in ev.modules[::2]:
+    if s.module_number > min_module and s.module_number <= max_module:
+      plt.plot(
+        [s.z+shift, s.z+shift],
+        [limits[0][0], limits[0][1]],
+        color=grey_color,
+        alpha=0.4,
+        linewidth=12)
+
+  """
+  for s in ev.modules[1::2]:
     plt.plot(
       [s.z+shift, s.z+shift],
       [limits[1][0], limits[1][1]],
@@ -52,25 +57,50 @@ def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.p
       alpha=0.4,
       linewidth=4
     )
+  """
 
   plt.scatter(
-    [h[x] for h in event.hits],
-    [h[y] for h in event.hits],
+    [h[x] for h in ev.hits if (h.module_number % 2) == 0 and (h.module_number > min_module) and (h.module_number <= max_module)],
+    [h[y] for h in ev.hits if (h.module_number % 2) == 0 and (h.module_number > min_module) and (h.module_number <= max_module)],
     color=default_color,
-    s=2*scale
+    s=6*scale
   )
 
-  for t in [t for t in tracks if len(t.hits)==3]:
-    plt.plot(
-      [h[x] for h in t.hits],
-      [h[y] for h in t.hits],
-      color=colors[track_color],
-      linewidth=1
-    )
+  # for t in tracks:
+  #   number_of_hits_other_side = 0
+  #   number_of_hits = 0
+  #   for h in t.hits:
+  #     if (h.module_number % 2) == 1:
+  #       number_of_hits_other_side += 1
+  #     elif h.module_number > min_module and h.module_number <= max_module:
+  #       number_of_hits += 1
 
-  plt.tick_params(axis='both', which='major', labelsize=4*scale)
-  plt.xlabel(ntox[x], fontdict={'fontsize': 4*scale})
-  plt.ylabel(ntox[y], fontdict={'fontsize': 4*scale}, rotation='horizontal')
+  #   if number_of_hits_other_side < 3 and number_of_hits >= 3:
+  #     plt.plot(
+  #       [h[x] for h in t.hits if (h.module_number % 2) == 0 and (h.module_number > min_module) and (h.module_number <= max_module)],
+  #       [h[y] for h in t.hits if (h.module_number % 2) == 0 and (h.module_number > min_module) and (h.module_number <= max_module)],
+  #       color="#000000",
+  #       linewidth=1)
+
+  # plt.tick_params(axis='both', which='major', labelsize=4*scale)
+  # plt.xlabel(ntox[x], fontdict={'fontsize': 4*scale})
+  # plt.ylabel(ntox[y], fontdict={'fontsize': 4*scale}, rotation='horizontal')
+  # plt.axis('off')
+
+  plt.tick_params(
+    axis='x',          # changes apply to the x-axis
+    which='both',      # both major and minor ticks are affected
+    bottom=False,      # ticks along the bottom edge are off
+    top=False,         # ticks along the top edge are off
+    labelbottom=False) # labels along the bottom edge are off
+
+  plt.tick_params(
+    axis='y',          # changes apply to the x-axis
+    which='both',      # both major and minor ticks are affected
+    left=False,      # ticks along the bottom edge are off
+    right=False,         # ticks along the top edge are off
+    labelleft=False) # labels along the bottom edge are off
 
   plt.savefig(filename, bbox_inches='tight', pad_inches=0.2)
+  plt.savefig(filename + ".pdf", bbox_inches='tight', pad_inches=0.2, transparent=True)
   plt.close()

@@ -3,12 +3,25 @@
 import event_model as em
 import validator_lite as vl
 import json
+from visual.base import print_event_2d
 
 # Solvers
 from graph_dfs import graph_dfs
 from classical_solver import classical_solver
+from trie_search.search_by_triplet_trie import *
+
 solutions = {}
 
+# Get an event
+f = open("velojson/0.json")
+json_data = json.loads(f.read())
+event = em.event(json_data)
+f.close()
+
+print_event_2d(ev, all_tracks[0], filename="classic_solution_xz.png")
+print_event_2d(ev, all_tracks[0], y=1, filename="classic_solution_yz.png")
+
+"""
 # Get an event
 f = open("velojson/0.json")
 json_data = json.loads(f.read())
@@ -37,3 +50,4 @@ print_event_2d(event, solutions["classic"], y=1, filename="classic_solution_yz.p
 
 print_event_2d(event, solutions["dfs"], filename="dfs_solution_xz.png", track_color=4)
 print_event_2d(event, solutions["dfs"], y=1, filename="dfs_solution_yz.png", track_color=4)
+"""
