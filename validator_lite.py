@@ -130,7 +130,7 @@ class Efficiency(object):
         self.n_reco += len(reconstructed(p2t))
         self.recoeff.append(1.*self.n_reco/self.n_particles)
         self.n_clones += sum([len(t)-1 for t in list(clones(t2p).values())])
-        hit_eff = hit_efficiency(t2p, event.hit_to_mcp, event.mcp_to_hits)
+        hit_eff = hit_efficinecy(t2p, event.hit_to_mcp, event.mcp_to_hits)
         purities = [pp[0] for _, pp in iter(t2p.items()) if pp[1] is not None]
         self.n_pure +=np.sum(purities)
         self.n_heff +=np.sum(list(hit_eff.values()))
@@ -161,7 +161,7 @@ class Efficiency(object):
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.__dict__)
 
-def update_efficiencies(eff, event, tracks, weights, weights_p_to_t, label, cond):
+def update_efficiencies(eff, event, tracks, weights, label, cond):
     #t2p_filtered = {t:(w,p) for t,(w,p) in t2p.iteritems() if (p is None) or cond(p)}
     particles_filtered = {p for  p in event.particles if cond(p)}
     pidx_filtered = [-1]
@@ -170,8 +170,7 @@ def update_efficiencies(eff, event, tracks, weights, weights_p_to_t, label, cond
     else:
         return eff
     weights_filtered = weights[:,np.array(list(pidx_filtered))]
-    weights_p_to_t_filtered = weights_p_to_t[:,np.array(list(pidx_filtered))]
-    t2p,p2t = hit_purity(tracks, particles_filtered, weights_filtered, weights_p_to_t_filtered)
+    t2p,p2t = hit_purity(tracks, particles_filtered, weights_filtered)
     if eff is None:
         eff = Efficiency(t2p, p2t, particles_filtered, event, label)
     else:
@@ -188,22 +187,19 @@ def comp_weights(tracks, event):
     event -- an insance of event_model.Event holding all information related to this event.
     """
     w = np.zeros((len(tracks), len(event.particles)))
-    w_p_to_t = np.zeros((len(tracks), len(event.particles)))
     for i, j in itertools.product(range(len(tracks)), range(len(event.particles))):
         trackhits = tracks[i].hits
         nhits = len(trackhits)
         particle = event.particles[j]
-        particle_nhits = len(particle.velohits)
         # try:
         nhits_from_p = len([h for h in trackhits if event.hit_to_mcp[h].count(particle) > 0])
         # except:
         #     print(event.hit_to_mcp)
         #     raise
-        w[i,j] = float(nhits_from_p) / nhits
-        w_p_to_t[i,j] = float(nhits_from_p) / particle_nhits
-    return w, w_p_to_t
+        w[i,j] = float(nhits_from_p)/nhits
+    return w
 
-def hit_purity(tracks, particles, weights, weights_p_to_t):
+def hit_purity(tracks, particles, weights):
     """
     Construct purity and reconstruction tables
     This function generates two dicts. The first stores the purities for all
@@ -224,24 +220,22 @@ def hit_purity(tracks, particles, weights, weights_p_to_t):
     p2t = {p:(0.0, None) for p in particles}
     for i in range(len(tracks)):
         # for each track get all particle weights and detmine max
-        max_weight_particle, nwtp = np.max(weights_p_to_t[i,:]), np.argmax(weights_p_to_t[i,:])
-        wtp = weights[i,nwtp]
-        if max_weight_particle > 0.7:
+        wtp, nwtp = np.max(weights[i,:]), np.argmax(weights[i,:])
+        if wtp > 0.7:
             t2p[tracks[i]] = (wtp, particles[nwtp])
         else:
             # store the weight anyway but don't associate a particle since this
             # track has no particle associated (i.e. it is a ghost)
             t2p[tracks[i]] = (wtp, None)
     for i in range(len(particles)):
-        max_weight_particle, nwtp = np.max(weights_p_to_t[:,i]), np.argmax(weights_p_to_t[:,i])
-        wtp = weights[nwtp,i]
-        if max_weight_particle > 0.7:
+        wtp, nwtp = np.max(weights[:,i]), np.argmax(weights[:,i])
+        if wtp > 0.7:
             p2t[particles[i]] = (wtp, tracks[nwtp])
         else:
             p2t[particles[i]] = (wtp, None)
     return t2p, p2t
 
-def hit_efficiency(t2p, hit_to_mcp, mcp_to_hits):
+def hit_efficinecy(t2p, hit_to_mcp, mcp_to_hits):
     """
     Hit efficiency for associated tracks.
     Calculate the hit efficiency for pairs of tracks and their associated
@@ -260,7 +254,7 @@ def hit_efficiency(t2p, hit_to_mcp, mcp_to_hits):
 
         # number of hits from particle on track
         hits_p_on_t = sum([hit_to_mcp[h].count(particle) for h in track.hits])
-        # number of hits from p on t / total number of hits from p
+        # # hits from p on t / total # hits from p
         hit_eff[(track, particle)] = float(hits_p_on_t)/len(mcp_to_hits[particle])
     return hit_eff
 
@@ -285,9 +279,7 @@ def clones(t2p):
     return {p:t for p,t in iter(p2t.items()) if len(t) > 1}
 
 def ghosts(t2p):
-    """Return ghosts, i.e. list of tracks with no particle associated,
-    or tracks with less than 70% hits of the real track"""
-    # print(t2p)
+    "Return ghosts, i.e. list of tracks with no particle associated"
     return [t for t,pp in iter(t2p.items()) if pp[1] is None]
 
 def ghost_rate(t2p):
@@ -313,24 +305,24 @@ def validate_print(events_json_data, tracks_list):
     eff_long_fromb5 = None
     for event, tracks in tracking_data:
         n_tracks += len(tracks)
-        weights, weights_p_to_t = comp_weights(tracks, event)
-        t2p, _ = hit_purity(tracks, event.particles, weights, weights_p_to_t)
+        weights = comp_weights(tracks, event)
+        t2p, _ = hit_purity(tracks, event.particles, weights)
         grate, nghosts = ghost_rate(t2p)
         n_allghsots += nghosts
         avg_ghost_rate += grate
-        eff_velo = update_efficiencies(eff_velo, event, tracks, weights, weights_p_to_t, 'velo'
+        eff_velo = update_efficiencies(eff_velo, event, tracks, weights, 'velo'
                     , lambda p: p.isvelo and (abs(p.pid) != 11))
-        eff_long = update_efficiencies(eff_long, event, tracks, weights, weights_p_to_t, 'long'
+        eff_long = update_efficiencies(eff_long, event, tracks, weights, 'long'
                     , lambda p: p.islong and (abs(p.pid) != 11))
-        eff_long5 = update_efficiencies(eff_long5, event, tracks, weights, weights_p_to_t, 'long>5GeV'
+        eff_long5 = update_efficiencies(eff_long5, event, tracks, weights, 'long>5GeV'
                     , lambda p: p.islong and p.over5 and (abs(p.pid) != 11))
-        eff_long_strange = update_efficiencies(eff_long_strange, event, tracks, weights, weights_p_to_t, 'long_strange'
+        eff_long_strange = update_efficiencies(eff_long_strange, event, tracks, weights, 'long_strange'
                     , lambda p: p.islong and p.strangelong and (abs(p.pid) != 11))
-        eff_long_strange5 = update_efficiencies(eff_long_strange5, event, tracks, weights, weights_p_to_t, 'long_strange>5GeV'
+        eff_long_strange5 = update_efficiencies(eff_long_strange5, event, tracks, weights, 'long_strange>5GeV'
                     , lambda p: p.islong and p.over5 and p.strangelong and (abs(p.pid) != 11))
-        eff_long_fromb = update_efficiencies(eff_long_fromb, event, tracks, weights, weights_p_to_t, 'long_fromb'
+        eff_long_fromb = update_efficiencies(eff_long_fromb, event, tracks, weights, 'long_fromb'
                     , lambda p: p.islong and p.fromb and (abs(p.pid) != 11))
-        eff_long_fromb5 = update_efficiencies(eff_long_fromb5, event, tracks, weights, weights_p_to_t, 'long_fromb>5GeV'
+        eff_long_fromb5 = update_efficiencies(eff_long_fromb5, event, tracks, weights, 'long_fromb>5GeV'
                     , lambda p: p.islong and p.over5 and p.fromb and (abs(p.pid) != 11))
 
     nevents = len(tracking_data)
@@ -371,8 +363,8 @@ def validate(events_json_data, tracks_list, particle_type="long>5GeV"):
 
     eff = None
     for event, tracks in tracking_data:
-        weights, weights_p_to_t = comp_weights(tracks, event)
-        eff = update_efficiencies(eff, event, tracks, weights, weights_p_to_t, particle_type,
+        weights = comp_weights(tracks, event)
+        eff = update_efficiencies(eff, event, tracks, weights, particle_type,
             particle_lambda[particle_type])
 
     return eff
@@ -403,8 +395,8 @@ def validate_ghost_fraction(events_json_data, tracks_list):
     n_allghsots = 0
     for event, tracks in tracking_data:
         n_tracks += len(tracks)
-        weights, weights_p_to_t = comp_weights(tracks, event)
-        t2p, _ = hit_purity(tracks, event.particles, weights, weights_p_to_t)
+        weights = comp_weights(tracks, event)
+        t2p, _ = hit_purity(tracks, event.particles, weights)
         grate, nghosts = ghost_rate(t2p)
         n_allghsots += nghosts
         avg_ghost_rate += grate
