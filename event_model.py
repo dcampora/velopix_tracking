@@ -2,28 +2,29 @@ import hashlib
 
 class event(object):
   '''Event defined by its json description.'''
-  def __init__(self, json_description):
-    self.event = json_description["event"]
-    self.montecarlo = json_description["montecarlo"]
-    self.number_of_modules = self.event["number_of_modules"]
-    self.number_of_hits = self.event["number_of_hits"]
+  def __init__(self, json_data):
+    self.number_of_modules = 52
+    self.description = json_data["description"]
+    self.montecarlo = json_data["montecarlo"]
+    self.module_prefix_sum = json_data["module_prefix_sum"]
+    self.number_of_hits = self.module_prefix_sum[self.number_of_modules]
+    self.module_zs = []
     self.hits = []
-    for s in range(self.number_of_modules):
-      for i in range(self.event["module_hits_starting_index"][s], 
-      self.event["module_hits_starting_index"][s] + self.event["module_number_of_hits"][s]):
-        self.hits.append(hit(self.event["hit_x"][i], self.event["hit_y"][i], self.event["hit_z"][i],
-        self.event["hit_id"][i], i, s))
-    self.modules = [
-      module(s,
-        self.event["module_module_z"][s],
-        self.event["module_hits_starting_index"][s],
-        self.event["module_number_of_hits"][s],
-        self.hits
-      ) for s in range(0, self.number_of_modules)
-    ]
 
-  def copy(self):
-    return event({"event": self.event, "montecarlo": self.montecarlo})
+    for m in range(self.number_of_modules):
+      self.module_zs.append(set([]))
+      for i in range(self.module_prefix_sum[m], self.module_prefix_sum[m + 1]):
+        self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, i, m))
+        self.module_zs[m].add(json_data["z"][i])
+    
+    self.modules = [
+      module(m,
+        self.module_zs[m],
+        self.module_prefix_sum[m],
+        self.module_prefix_sum[m + 1] - self.module_prefix_sum[m],
+        self.hits
+      ) for m in range(0, self.number_of_modules)
+    ]
 
 class track(object):
   '''A track, essentially a list of hits.'''

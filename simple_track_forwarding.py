@@ -4,7 +4,7 @@ import validator_lite as vl
 import json
 
 # Get an event
-f = open("velojson/0.json")
+f = open("events/velo_event_0.json")
 json_data = json.loads(f.read())
 event = em.event(json_data)
 f.close()
