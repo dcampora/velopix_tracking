@@ -74,8 +74,8 @@ make things interesting.
 A simplistic implementation runs through all modules sequentially,
 finding tracks by matching hits in a straight line.
 
-    > from classical_solver import classical_solver
-    > tracks = classical_solver().solve(event)
+    > from algorithms.track_forwarding import track_forwarding
+    > tracks = track_forwarding().solve(event)
     > len(tracks)
     117
     > print(tracks[0])

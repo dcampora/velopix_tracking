@@ -1,4 +1,4 @@
-from event_model import track, hit
+from event_model.event_model import track, hit
 import argparse
 import errno
 import os

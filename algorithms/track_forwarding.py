@@ -1,4 +1,4 @@
-from event_model import *
+from event_model.event_model import *
 
 class track_forwarding:
   '''The classical solver.
@@ -10,6 +10,10 @@ class track_forwarding:
     self.__max_slopes = max_slopes
     self.__max_tolerance = max_tolerance
     self.__max_scatter = max_scatter
+
+    print("Instantiating track_forwarding solver with parameters\n max slopes: %s\n max tolerance: %s\n\
+ max scatter: %s\n" % \
+ (self.__max_slopes, self.__max_tolerance, self.__max_scatter))
 
   def are_compatible(self, hit_0, hit_1):
     hit_distance = abs(hit_1[2] - hit_0[2])
@@ -42,10 +46,6 @@ class track_forwarding:
     return tolx_condition and toly_condition and scatter_condition
 
   def solve(self, event):
-    print("Invoking classic solver with\n max slopes: %s\n max tolerance: %s\n\
- max scatter: %s\n" % \
- (self.__max_slopes, self.__max_tolerance, self.__max_scatter))
-
     # We are searching for tracks
     # We will keep a list of used hits to avoid clones
     weak_tracks = []
