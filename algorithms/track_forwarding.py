@@ -1,6 +1,6 @@
 from event_model import *
 
-class classical_solver:
+class track_forwarding:
   '''The classical solver.
 
   It sequentially traverses all module modules, marking

@@ -26,7 +26,7 @@ the results are validated. That is, the particles found by
 the solver are matched against the real particles that came out of
 the collisions in the event.
 
-![velopix reconstruction example](reco_example.png "velopix reconstruction example")
+![velopix reconstruction example](doc/reco_example.png "velopix reconstruction example")
 
 The algorithm included is just one way of doing it, but perhaps
 not the most efficient one!
