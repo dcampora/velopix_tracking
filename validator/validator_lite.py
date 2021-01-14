@@ -8,15 +8,10 @@ import itertools
 
 class validator_event(object):
     """A SOA datastructure for events"""
-    def __init__(self, module_Zs, module_hitStarts, module_hitNums,
-        hit_IDs, hit_Xs, hit_Ys, hit_Zs, hits, mcp_to_hits=None):
-        self.module_Zs = module_Zs
-        self.module_hitStarts = module_hitStarts
-        self.module_hitNums = module_hitNums
-        self.hit_IDs = hit_IDs
+    def __init__(self, module_prefix_sum, hit_Xs, hit_Ys, hit_Zs, hits, mcp_to_hits=None):
+        self.module_prefix_sum = module_prefix_sum
         self.hit_Xs, self.hit_Ys, self.hit_Zs = hit_Xs, hit_Ys, hit_Zs
         self.hits = hits
-        self.hits_by_id = {h.id:h for h in self.hits}
         self.mcp_to_hits = mcp_to_hits
         self.hit_to_mcp = None
         self.particles = None
@@ -28,13 +23,13 @@ class validator_event(object):
                     self.hit_to_mcp[h].append(mcp)
 
     def get_hit(self, hit_id):
-        return self.hits_by_id[hit_id]
+        return self.hits[hit_id]
 
 
 class MCParticle(object):
     """Store information about a Monte-Carlo simulation particle"""
 
-    def __init__(self, pkey, pid, p, pt, eta, phi, velohits):
+    def __init__(self, pkey, pid, p, pt, eta, phi, charge, velohits):
         """Construct a new particle from
 
         its numeric key (arbitrary integer used in input file)
@@ -48,16 +43,17 @@ class MCParticle(object):
         self.pt = pt
         self.eta = eta
         self.phi = phi
+        self.charge = charge
 
         # flags - set them directly after initializing the object
         self.islong = False
         self.isdown = False
         self.isvelo = False
         self.isut = False
-        self.strangelong = False
-        self.strangedown = False
+        self.hasScifi = False
+        self.strange = False
         self.fromb = False
-        self.fromd = False
+        self.fromcharm = False
         self.over5 = abs(self.p) > 5000.
 
     def __str__(self):
@@ -71,10 +67,9 @@ class MCParticle(object):
         s += "\tisdown:\t%r"%(self.isdown)
         s += "\tisvelo:\t%r"%(self.isvelo)
         s += "\tisut:\t%r\n"%(self.isut)
-        s += "\tstrangelong:\t%r"%(self.strangelong)
-        s += "\tstrangedown:\t%r"%(self.strangedown)
+        s += "\tfromstrange:\t%r"%(self.strange)
         s += "\tfromb:\t%r"%(self.fromb)
-        s += "\tfromd:\t%r"%(self.fromd)
+        s += "\tfromcharm:\t%r"%(self.fromcharm)
         s += "\nhits:"+str(self.velohits)
         return s
 
@@ -83,9 +78,8 @@ class MCParticle(object):
 
 
 def parse_json_data(json_data):
-    json_event = json_data["event"]
     hits = []
-    for x, y, z, hid in zip(json_event["hit_x"], json_event["hit_y"], json_event["hit_z"], json_event["hit_id"]):
+    for hid, (x, y, z) in enumerate(zip(json_data["x"], json_data["y"], json_data["z"])):
         hits.append(hit(x, y, z, hid))
     mcp_to_hits = {}
     if json_data["montecarlo"]:
@@ -94,14 +88,12 @@ def parse_json_data(json_data):
         hdict = {h.id:h for h in hits}
         d = {description[i]:i for i in range(len(description))}
         for p in particles:
-            trackhits = [hdict[hid] for hid in p[d["mcp_hits"]]]
-            mcp = MCParticle(p[d["mcp_key"]], p[d["mcp_id"]], p[d["mcp_p"]], p[d["mcp_pt"]], p[d["mcp_eta"]], p[d["mcp_phi"]], trackhits)
-            mcp.islong, mcp.isdown, mcp.isvelo, mcp.isut = p[d["mcp_islong"]], p[d["mcp_isdown"]], p[d["mcp_isvelo"]], p[d["mcp_isut"]]
-            mcp.strangelong, mcp.strangedown, mcp.fromb, mcp.fromd = p[d["mcp_strangelong"]], p[d["mcp_strangedown"]], p[d["mcp_fromb"]], p[d["mcp_fromd"]]
+            trackhits = [hdict[hid] for hid in p[d["hits"]]]
+            mcp = MCParticle(p[d["key"]], p[d["pid"]], p[d["p"]], p[d["pt"]], p[d["eta"]], p[d["phi"]], p[d["charge"]], trackhits)
+            mcp.islong, mcp.isdown, mcp.isvelo, mcp.isut, mcp.hasScifi = p[d["isLong"]], p[d["isDown"]], p[d["hasVelo"]], p[d["hasUT"]], p[d["hasScifi"]]
+            mcp.strange, mcp.fromb, mcp.fromcharm = p[d["fromStrangeDecay"]], p[d["fromBeautyDecay"]], p[d["fromCharmDecay"]]
             mcp_to_hits[mcp] = trackhits
-    return validator_event (json_event["module_module_z"], json_event["module_hits_starting_index"],
-        json_event["module_number_of_hits"], json_event["hit_id"], json_event["hit_x"],
-        json_event["hit_y"], json_event["hit_z"], hits, mcp_to_hits)
+    return validator_event (json_data["module_prefix_sum"], json_data["x"], json_data["y"], json_data["z"], hits, mcp_to_hits)
 
 class Efficiency(object):
 
@@ -201,13 +193,14 @@ def comp_weights(tracks, event):
     for i, j in itertools.product(range(len(tracks)), range(len(event.particles))):
         trackhits = tracks[i].hits
         nhits = len(trackhits)
-        particle = event.particles[j]
-        # try:
-        nhits_from_p = len([h for h in trackhits if event.hit_to_mcp[h].count(particle) > 0])
-        # except:
-        #     print(event.hit_to_mcp)
-        #     raise
-        w[i,j] = float(nhits_from_p)/nhits
+        if nhits >= 2:
+            particle = event.particles[j]
+            # try:
+            nhits_from_p = len([h for h in trackhits if event.hit_to_mcp[h].count(particle) > 0])
+            # except:
+            #     print(event.hit_to_mcp)
+            #     raise
+            w[i,j] = float(nhits_from_p)/nhits
     return w
 
 def hit_purity(tracks, particles, weights):
@@ -328,9 +321,9 @@ def validate_print(events_json_data, tracks_list):
         eff_long5 = update_efficiencies(eff_long5, event, tracks, weights, 'long>5GeV'
                     , lambda p: p.islong and p.over5 and (abs(p.pid) != 11))
         eff_long_strange = update_efficiencies(eff_long_strange, event, tracks, weights, 'long_strange'
-                    , lambda p: p.islong and p.strangelong and (abs(p.pid) != 11))
+                    , lambda p: p.islong and p.strange and (abs(p.pid) != 11))
         eff_long_strange5 = update_efficiencies(eff_long_strange5, event, tracks, weights, 'long_strange>5GeV'
-                    , lambda p: p.islong and p.over5 and p.strangelong and (abs(p.pid) != 11))
+                    , lambda p: p.islong and p.over5 and p.strange and (abs(p.pid) != 11))
         eff_long_fromb = update_efficiencies(eff_long_fromb, event, tracks, weights, 'long_fromb'
                     , lambda p: p.islong and p.fromb and (abs(p.pid) != 11))
         eff_long_fromb5 = update_efficiencies(eff_long_fromb5, event, tracks, weights, 'long_fromb>5GeV'
@@ -344,13 +337,13 @@ def validate_print(events_json_data, tracks_list):
     #print("Number of clones: %d"%n_clones)
     #print("Average hit purity: %6.2f%%"%(100*avg_purity/nevents))
     #print("Average hit efficiency: %6.2f%%"%(100*avg_hiteff/nevents))
-    print(eff_velo)
-    print(eff_long)
-    print(eff_long5)
-    print(eff_long_strange)
-    print(eff_long_strange5)
-    print(eff_long_fromb)
-    print(eff_long_fromb5)
+    if eff_velo: print(eff_velo)
+    if eff_long: print(eff_long)
+    if eff_long5: print(eff_long5)
+    if eff_long_strange: print(eff_long_strange)
+    if eff_long_strange5: print(eff_long_strange5)
+    if eff_long_fromb: print(eff_long_fromb)
+    if eff_long_fromb5: print(eff_long_fromb5)
 
 def validate(events_json_data, tracks_list, particle_type="long>5GeV"):
     '''Returns just the Efficiency object of the particle_type requested.
@@ -366,8 +359,8 @@ def validate(events_json_data, tracks_list, particle_type="long>5GeV"):
         'velo': lambda p: p.isvelo and (abs(p.pid) != 11),
         'long': lambda p: p.islong and (abs(p.pid) != 11),
         'long>5GeV': lambda p: p.islong and p.over5 and (abs(p.pid) != 11),
-        'long_strange': lambda p: p.islong and p.strangelong and (abs(p.pid) != 11),
-        'long_strange>5GeV': lambda p: p.islong and p.over5 and p.strangelong and (abs(p.pid) != 11),
+        'long_strange': lambda p: p.islong and p.strange and (abs(p.pid) != 11),
+        'long_strange>5GeV': lambda p: p.islong and p.over5 and p.strange and (abs(p.pid) != 11),
         'long_fromb': lambda p: p.islong and p.fromb and (abs(p.pid) != 11),
         'long_fromb>5GeV': lambda p: p.islong and p.over5 and p.fromb and (abs(p.pid) != 11)
     }
