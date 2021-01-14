@@ -37,7 +37,7 @@ class track(object):
     self.hits.append(hit)
 
   def __repr__(self):
-    return "Track hits #" + str(len(self.hits)) + ": " + str(self.hits)
+    return "Track with " + str(len(self.hits)) + " hits: " + str(self.hits)
 
   def __iter__(self):
     return iter(self.hits)
