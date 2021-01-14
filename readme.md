@@ -12,7 +12,7 @@ What is track reconstruction?
 -----------------------------
 
 At the LHCb detector, millions of particles collide at speeds
-close to the speed of light, leaving traces (hits) on the sensors
+close to the speed of light, leaving traces (hits) on the modules
 placed in their way.
 
 The collisions that happen at the same time are packed
@@ -48,10 +48,10 @@ is shipped with this project.
     > event = em.event(json_data)
     > f.close()
 
-The LHCb Velopix detector has 52 sensors. Spread across the sensors,
+The LHCb Velopix detector has 52 modules. Spread across the modules,
 we should have many hits, depending on the event we are on.
 
-    > print(len(event.sensors))
+    > print(len(event.modules))
     52
     > print(len(event.hits))
     1003
@@ -61,17 +61,17 @@ Hits are composed of an ID, and {x, y, z} coordinates.
     > print(event.hits[0])
     #117979 {-3.385275, 13.436796, -275.531006}
 
-Sensors are placed at some z in the detector. Each sensor
+modules are placed at some z in the detector. Each module
 may have as many hits as particles crossed by it, plus some noise to
 make things interesting.
 
-    > print(event.sensors[0])
-    Sensor 0:
+    > print(event.modules[0])
+    module 0:
      At z: -275
      Number of hits: 18
      Hits (#id {x, y, z}): [#117979 {-3.385275, 13.436796, -275.531006}, #128942 {0.017677, 13.495132, -275.531006}, #134072 {0.464924, 12.270069, -275.531006}, #134107 {-0.896257, 10.908888, -275.531006}, #134562 {1.417747, 13.067333, -275.531006}, #141439 {3.828983, 13.37846, -275.531006}, #178943 {4.529018, 2.722359, -275.531006}, #193779 {7.231934, 0.913937, -275.531006}, #268042 {24.997992, 21.066479, -274.468994}, #326966 {14.341893, 28.261292, -274.468994}, #389073 {-1.207973, 31.742023, -274.468994}, #542432 {3.986314, -5.6763, -274.468994}, #557605 {13.572914, -10.634886, -274.468994}, #569059 {7.894847, -1.534422, -274.468994}, #573093 {10.928335, -3.323402, -274.468994}, #861641 {30.529337, -0.678823, -275.531006}, #905103 {26.154114, -9.526497, -275.531006}, #941420 {21.934456, -16.507406, -275.531006}]
 
-A simplistic implementation runs through all sensors sequentially,
+A simplistic implementation runs through all modules sequentially,
 finding tracks by matching hits in a straight line.
 
     > from classical_solver import classical_solver
