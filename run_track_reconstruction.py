@@ -17,7 +17,7 @@ validation_data = []
 track_forwarding = track_forwarding()
 
 # Iterate all events
-for (dirpath, dirnames, filenames) in os.walk("events"):
+for (dirpath, dirnames, filenames) in os.walk("events_upgrade2"):
   for i, filename in enumerate(filenames):
     # Get an event
     f = open(os.path.realpath(os.path.join(dirpath, filename)))
@@ -32,6 +32,8 @@ for (dirpath, dirnames, filenames) in os.walk("events"):
     # Append the solution and json_data
     solutions["track_forwarding"].append(tracks)
     validation_data.append(json_data)
+
+    break
 
 # Validate the solutions
 for k, v in iter(sorted(solutions.items())):

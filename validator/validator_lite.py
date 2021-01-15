@@ -85,13 +85,12 @@ def parse_json_data(json_data):
     if json_data["montecarlo"]:
         description = json_data["montecarlo"]["description"]
         particles = json_data["montecarlo"]["particles"]
-        hdict = {h.id:h for h in hits}
-        d = {description[i]:i for i in range(len(description))}
         for p in particles:
-            trackhits = [hdict[hid] for hid in p[d["hits"]]]
-            mcp = MCParticle(p[d["key"]], p[d["pid"]], p[d["p"]], p[d["pt"]], p[d["eta"]], p[d["phi"]], p[d["charge"]], trackhits)
-            mcp.islong, mcp.isdown, mcp.isvelo, mcp.isut, mcp.hasScifi = p[d["isLong"]], p[d["isDown"]], p[d["hasVelo"]], p[d["hasUT"]], p[d["hasScifi"]]
-            mcp.strange, mcp.fromb, mcp.fromcharm = p[d["fromStrangeDecay"]], p[d["fromBeautyDecay"]], p[d["fromCharmDecay"]]
+            d = {description[i]: p[i] for i in range(len(description))}
+            trackhits = [hits[hit_number] for hit_number in d["hits"]]
+            mcp = MCParticle(d.get("key", 0), d.get("pid", 0), d.get("p", 0), d.get("pt", 0), d.get("eta", 0), d.get("phi", 0), d.get("charge", 0), trackhits)
+            mcp.islong, mcp.isdown, mcp.isvelo, mcp.isut, mcp.hasScifi = d.get("isLong", 0), d.get("isDown", 0), d.get("hasVelo", 1), d.get("hasUT", 0), d.get("hasScifi", 0)
+            mcp.strange, mcp.fromb, mcp.fromcharm = d.get("fromStrangeDecay", 0), d.get("fromBeautyDecay", 0), d.get("fromCharmDecay", 0)
             mcp_to_hits[mcp] = trackhits
     return validator_event (json_data["module_prefix_sum"], json_data["x"], json_data["y"], json_data["z"], hits, mcp_to_hits)
 
@@ -168,15 +167,6 @@ def update_efficiencies(eff, event, tracks, weights, label, cond):
         eff = Efficiency(t2p, p2t, particles_filtered, event, label)
     else:
         eff.add_event(t2p, p2t, particles_filtered, event)
-
-    # if label=="long":
-    #     for p in particles_filtered:
-    #         reco, t = p2t[p]
-    #         if reco<1.0:
-    #             print("Not perfectly reconstructed:", reco)
-    #             print(p)
-    #             print("Best track:", t)
-    #             print()
 
     return eff
 

@@ -10,11 +10,15 @@ class event(object):
     self.number_of_hits = self.module_prefix_sum[self.number_of_modules]
     self.module_zs = []
     self.hits = []
+    with_t = "t" in json_data
 
     for m in range(self.number_of_modules):
       self.module_zs.append(set([]))
       for i in range(self.module_prefix_sum[m], self.module_prefix_sum[m + 1]):
-        self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, i, m))
+        if with_t:
+          self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, i, m, json_data["t"][i], 1))
+        else:
+          self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, i, m))
         self.module_zs[m].add(json_data["z"][i])
     
     self.modules = [
@@ -58,13 +62,15 @@ class hit(object):
   It may optionally contain the number of the module where
   the hit happened.
   '''
-  def __init__(self, x, y, z, hit_id, hit_number=-1, module=-1):
+  def __init__(self, x, y, z, hit_id, hit_number=-1, module=-1, t=0, with_t=False):
     self.x = x
     self.y = y
     self.z = z
+    self.t = t
     self.id = hit_id
     self.hit_number = hit_number
     self.module_number = module
+    self.with_t = with_t
 
   def __getitem__(self, index):
     if (index<0 or index>2):
@@ -76,7 +82,7 @@ class hit(object):
 
   def __repr__(self):
     return "#" + str(self.hit_number) + " id " + str(self.id) + " module " + str(self.module_number) + " {" + str(self.x) + ", " + \
-         str(self.y) + ", " + str(self.z) + "}"
+         str(self.y) + ", " + str(self.z) + (", " + str(self.t) if self.with_t else "") + "}"
 
   def __eq__(self, other):
       return self.id == other.id
