@@ -1,6 +1,6 @@
 import sys
 sys.path.append("../")
-from classical_solver import classical_solver
+
 import validator_lite as vl
 import json
 from event_model import *
