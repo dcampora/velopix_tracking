@@ -59,7 +59,7 @@ we should have many hits, depending on the event we are on.
 Hits are composed of an ID, and {x, y, z} coordinates.
 
     > print(event.hits[0])
-    #0 id 0 module 0 {9.18, -30.509, -288.08}
+    #0 module 0 {9.18, -30.509, -288.08}
 
 
 modules are placed at some z in the detector. Each module
@@ -70,7 +70,7 @@ make things interesting.
     module 0:
      At z: {-288.08, -286.918}
      Number of hits: 20
-     Hits (#id {x, y, z}): [#0 id 0 module 0 {9.18, -30.509, -288.08}, #1 id 1 module 0 {-9.137, -12.308, -288.08}, #2 id 2 module 0 {-8.806, -8.711, -288.08}, #3 id 3 module 0 {-9.623, -5.171, -288.08}, #4 id 4 module 0 {-21.73, -20.093, -286.918}, #5 id 5 module 0 {-16.422, -19.918, -286.918}, #6 id 6 module 0 {-12.455, -24.43, -286.918}, #7 id 7 module 0 {-11.832, -24.818, -286.918}, #8 id 8 module 0 {-7.827, -28.124, -286.918}, #9 id 9 module 0 {8.759, -44.478, -286.918}, #10 id 10 module 0 {-5.415, -22.407, -286.918}, #11 id 11 module 0 {-4.365, -34.152, -286.918}, #12 id 12 module 0 {-7.574, -37.711, -286.918}, #13 id 13 module 0 {-7.418, -37.75, -286.918}, #14 id 14 module 0 {-5.424, 6.221, -286.918}, #15 id 15 module 0 {-11.005, 11.49, -286.918}, #16 id 16 module 0 {-28.292, -8.771, -286.918}, #17 id 17 module 0 {-39.789, 6.663, -288.08}, #18 id 18 module 0 {-33.795, 2.468, -288.08}, #19 id 19 module 0 {-15.458, 15.438, -288.08}]
+     Hits (#id {x, y, z}): [#0 module 0 {9.18, -30.509, -288.08}, #1 module 0 {-9.137, -12.308, -288.08}, #2 module 0 {-8.806, -8.711, -288.08}, #3 module 0 {-9.623, -5.171, -288.08}, #4 module 0 {-21.73, -20.093, -286.918}, #5 module 0 {-16.422, -19.918, -286.918}, #6 module 0 {-12.455, -24.43, -286.918}, #7 module 0 {-11.832, -24.818, -286.918}, #8 module 0 {-7.827, -28.124, -286.918}, #9 module 0 {8.759, -44.478, -286.918}, #10 module 0 {-5.415, -22.407, -286.918}, #11 module 0 {-4.365, -34.152, -286.918}, #12 module 0 {-7.574, -37.711, -286.918}, #13 module 0 {-7.418, -37.75, -286.918}, #14 module 0 {-5.424, 6.221, -286.918}, #15 module 0 {-11.005, 11.49, -286.918}, #16 module 0 {-28.292, -8.771, -286.918}, #17 module 0 {-39.789, 6.663, -288.08}, #18 module 0 {-33.795, 2.468, -288.08}, #19 module 0 {-15.458, 15.438, -288.08}]
 
 
 A simplistic implementation runs through all modules sequentially,
@@ -85,7 +85,7 @@ finding tracks by matching hits in a straight line.
     > len(tracks)
     148
     > print(tracks[0])
-    Track with 9 hits: [#985 id 985 module 51 {-8.343, 17.073, 749.419}, #962 id 962 module 49 {-7.759, 15.945, 699.419}, #941 id 941 module 47 {-7.215, 14.779, 649.419}, #908 id 908 module 44 {-6.533, 13.318, 588.081}, #881 id 881 module 42 {-5.366, 10.985, 488.081}, #852 id 852 module 40 {-4.16, 8.613, 388.081}, #823 id 823 module 38 {-3.246, 6.843, 313.081}, #788 id 788 module 36 {-2.682, 5.657, 263.081}, #750 id 750 module 34 {-2.371, 5.035, 238.081}]
+    Track with 9 hits: [#985 module 51 {-8.343, 17.073, 749.419}, #962 module 49 {-7.759, 15.945, 699.419}, #941 module 47 {-7.215, 14.779, 649.419}, #908 module 44 {-6.533, 13.318, 588.081}, #881 module 42 {-5.366, 10.985, 488.081}, #852 module 40 {-4.16, 8.613, 388.081}, #823 module 38 {-3.246, 6.843, 313.081}, #788 module 36 {-2.682, 5.657, 263.081}, #750 module 34 {-2.371, 5.035, 238.081}]
 
 Finally, we should validate these results, and we'll look
 at three things:
