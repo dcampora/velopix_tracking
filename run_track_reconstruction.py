@@ -6,18 +6,18 @@ from event_model import event_model as em
 from validator import validator_lite as vl
 
 # Solvers
-from algorithms.track_forwarding import track_forwarding
+from algorithms.track_following import track_following
 
 solutions = {
-  "track_forwarding": []
+  "track_following": []
 }
 validation_data = []
 
 # Instantiate algorithm
-track_forwarding = track_forwarding()
+track_following = track_following()
 
 # Iterate all events
-for (dirpath, dirnames, filenames) in os.walk("events_upgrade2"):
+for (dirpath, dirnames, filenames) in os.walk("events"):
   for i, filename in enumerate(filenames):
     # Get an event
     f = open(os.path.realpath(os.path.join(dirpath, filename)))
@@ -26,17 +26,15 @@ for (dirpath, dirnames, filenames) in os.walk("events_upgrade2"):
     f.close()
 
     # Do track reconstruction
-    print("Reconstructing event", i)
-    tracks = track_forwarding.solve(event)
+    print("Reconstructing event %i..." % (i))
+    tracks = track_following.solve(event)
 
     # Append the solution and json_data
-    solutions["track_forwarding"].append(tracks)
+    solutions["track_following"].append(tracks)
     validation_data.append(json_data)
-
-    break
 
 # Validate the solutions
 for k, v in iter(sorted(solutions.items())):
-  print("\n%s method validation" % (k))
+  print("\nValidating tracks from %s:" % (k))
   vl.validate_print(validation_data, v)
   print()

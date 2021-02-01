@@ -76,9 +76,9 @@ make things interesting.
 A simplistic implementation runs through all modules sequentially,
 finding tracks by matching hits in a straight line.
 
-    > from algorithms.track_forwarding import track_forwarding
-    > tracks = track_forwarding().solve(event)
-    Instantiating track_forwarding solver with parameters
+    > from algorithms.track_following import track_following
+    > tracks = track_following().solve(event)
+    Instantiating track_following solver with parameters
      max slopes: (0.7, 0.7)
      max tolerance: (0.4, 0.4)
      max scatter: 0.4

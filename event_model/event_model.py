@@ -16,9 +16,9 @@ class event(object):
       self.module_zs.append(set([]))
       for i in range(self.module_prefix_sum[m], self.module_prefix_sum[m + 1]):
         if with_t:
-          self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, i, m, json_data["t"][i], 1))
+          self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, m, json_data["t"][i], 1))
         else:
-          self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, i, m))
+          self.hits.append(hit(json_data["x"][i], json_data["y"][i], json_data["z"][i], i, m))
         self.module_zs[m].add(json_data["z"][i])
     
     self.modules = [
@@ -62,13 +62,12 @@ class hit(object):
   It may optionally contain the number of the module where
   the hit happened.
   '''
-  def __init__(self, x, y, z, hit_id, hit_number=-1, module=-1, t=0, with_t=False):
+  def __init__(self, x, y, z, hit_id, module=-1, t=0, with_t=False):
     self.x = x
     self.y = y
     self.z = z
     self.t = t
     self.id = hit_id
-    self.hit_number = hit_number
     self.module_number = module
     self.with_t = with_t
 
@@ -81,7 +80,7 @@ class hit(object):
     else: return self.z
 
   def __repr__(self):
-    return "#" + str(self.hit_number) + " id " + str(self.id) + " module " + str(self.module_number) + " {" + str(self.x) + ", " + \
+    return "#" + str(self.id) + " module " + str(self.module_number) + " {" + str(self.x) + ", " + \
          str(self.y) + ", " + str(self.z) + (", " + str(self.t) if self.with_t else "") + "}"
 
   def __eq__(self, other):

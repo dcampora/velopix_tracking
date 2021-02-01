@@ -1,6 +1,6 @@
 from event_model.event_model import *
 
-class track_forwarding:
+class track_following:
   '''The classical solver.
 
   It sequentially traverses all module modules, marking
@@ -11,7 +11,7 @@ class track_forwarding:
     self.__max_tolerance = max_tolerance
     self.__max_scatter = max_scatter
 
-    print("Instantiating track_forwarding solver with parameters\n max slopes: %s\n max tolerance: %s\n\
+    print("Instantiating track_following solver with parameters\n max slopes: %s\n max tolerance: %s\n\
  max scatter: %s\n" % \
  (self.__max_slopes, self.__max_tolerance, self.__max_scatter))
 
