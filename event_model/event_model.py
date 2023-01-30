@@ -1,9 +1,9 @@
 import hashlib
 
-class event(object):
+class event:
   '''Event defined by its json description.'''
   def __init__(self, json_data):
-    self.number_of_modules = 52
+    self.number_of_modules = len(json_data["module_prefix_sum"]) - 1
     self.description = json_data["description"]
     self.montecarlo = json_data["montecarlo"]
     self.module_prefix_sum = json_data["module_prefix_sum"]
@@ -30,7 +30,7 @@ class event(object):
       ) for m in range(0, self.number_of_modules)
     ]
 
-class track(object):
+class track:
   '''A track, essentially a list of hits.'''
   def __init__(self, hits):
     self.hits = hits
@@ -57,7 +57,7 @@ class track(object):
         ''.join([str(h.id) for h in self.hits]).encode('utf-8')).digest(), byteorder='big')
 
 
-class hit(object):
+class hit:
   '''A hit, composed of an id and its x, y and z coordinates.
   It may optionally contain the number of the module where
   the hit happened.
@@ -93,7 +93,7 @@ class hit(object):
       return self.id
 
 
-class module(object):
+class module:
   '''A module is identified by its number.
   It also contains the z coordinate in which it sits, and
   the list of hits it holds.
