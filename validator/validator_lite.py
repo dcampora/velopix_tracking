@@ -280,7 +280,10 @@ def ghost_rate(t2p):
     "Returns the fraction of unassociated tracks (fake tracks) and number of ghosts"
     ntracks = len(t2p.keys())
     nghosts = len(ghosts(t2p))
-    return float(nghosts)/ntracks, nghosts
+    if ntracks > 0:
+        return float(nghosts)/ntracks, nghosts
+    else:
+        return 0, 0
 
 def validate_print(events_json_data, tracks_list):
     tracking_data = []

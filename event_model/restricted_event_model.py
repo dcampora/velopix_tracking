@@ -73,6 +73,6 @@ def restrict_event(json_data, restricted_modules, restrict_min_nb_hits, restrict
   restricted_json["montecarlo"]["particles"] = restricted_mc_particles
   restricted_event = restricted_event_view(event, restricted_modules, restricted_json["montecarlo"])
 
-  print("Restricted number of MC particles:", len(restricted_mc_particles))
+  # print("Restricted number of MC particles:", len(restricted_mc_particles))
 
   return restricted_event, restricted_json
