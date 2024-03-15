@@ -55,6 +55,9 @@ def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.p
 
     for i in modules:
       m = event.modules[i]
+      if len(event.modules[i].hits()) == 0:
+        continue
+        # if there are no hits skip drawing rectangle for this module
       limit = limits[i % 2]
       rect = mpatches.Rectangle((min(m.z)-shift,limit[0]),max(m.z)-min(m.z)+2*shift,limit[1],edgecolor=grey_color,facecolor=grey_color,alpha=0.4)
       ax.add_patch(rect)
@@ -71,6 +74,9 @@ def print_event_2d(event, tracks=[], x=2, y=0, track_color=0, filename="visual.p
 
     for i, m in enumerate(event.modules):
       limit = limits[i % 2]
+      if len(event.modules[i].hits()) == 0:
+        continue
+        # if there are no hits skip drawing rectangle for this module
       rect = mpatches.Rectangle((min(m.z)-shift,limit[0]),max(m.z)-min(m.z)+2*shift,limit[1],edgecolor=grey_color,facecolor=grey_color,alpha=0.4)
       ax.add_patch(rect)
 
